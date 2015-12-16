@@ -20,13 +20,13 @@ function inope_install() {
     'module_filter',
     'strongarm',
   ), TRUE);
-  
+
   module_disable(array('toolbar'), FALSE);
-  
+
   features_revert_module('feature_inope_policy');
   features_revert_module('feature_inope_site_configuration');
-  
+
   drupal_flush_all_caches();
-  
+
   return t('Enabled iNope Basic Configuration and Features.');
 }
