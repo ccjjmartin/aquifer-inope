@@ -1,0 +1,135 @@
+<?php
+/**
+ * @file
+ * iNope Policy Review Module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function inope_policy_review_menu() {
+  $items = array();
+
+  $items['node/%/review'] = array(
+    'title callback' => 'inope_policy_review_tab_title_callback',
+    'title arguments' => array(1),
+    'description' => 'Review of policy nodes.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('inope_policy_review_form'),
+    'access arguments' => array('view published content'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+
+}
+
+/**
+ * iNope Policy Review Page Title Callback
+ */
+function inope_policy_review_tab_title_callback($node_nid) {
+  $node = node_load($node_nid);
+  $node_title = $node->title;
+  $title = t('Review of @node_title', array('@node_title' => $node_title));
+  return $title;
+}
+
+/**
+ * iNope Policy Review Form
+ */
+function inope_policy_review_form($form, &$form_state) {
+
+  $form['inope_policy_review_approved_checkbox'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('I have reviewed this policy and approved it for use'),
+    '#default_value' => TRUE,
+    '#states' => array(
+      'unchecked' => array(
+        ':input[name="inope_policy_review_changes_checkbox"]' => array('checked' => TRUE),
+      ),
+      'checked' => array(
+        ':input[name="inope_policy_review_changes_checkbox"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+
+  $form['inope_policy_review_changes_checkbox'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('I have reviewed this policy and would like to see changes'),
+    '#default_value' => 0,
+    '#states' => array(
+      'checked' => array(
+        ':input[name="inope_policy_review_approved_checkbox"]' => array('checked' => FALSE),
+      ),
+      'unchecked' => array(
+        ':input[name="inope_policy_review_approved_checkbox"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  $form['inope_policy_review_changes_requested_textarea'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Changes Requested:'),
+    '#default_value' => '',
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="inope_policy_review_changes_checkbox"]' => array('checked' => FALSE),
+      ),
+      'required' => array(
+        ':input[name="inope_policy_review_changes_checkbox"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  $form['inope_policy_review_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * iNope Policy Review Form submit handler.
+ */
+function inope_policy_review_form_submit($form, &$form_state) {
+  $user = $GLOBALS['user'];
+  $node_id = array_slice(explode('/', check_plain($_GET['q'])), 1, 1);
+  $node = node_load($node_id[0]);
+
+  if ($form_state['values']['inope_policy_review_approved_checkbox'] == 1) {
+    drupal_set_message(t('Policy approved for use'));
+  }
+  elseif ($form_state['values']['inope_policy_review_changes_checkbox'] == 1) {
+    drupal_set_message(
+      t('User') . ' : ' . $user->uid . ' : ' .
+      ucfirst($user->name) . t(' submitted the following change request:'));
+
+    drupal_set_message(check_plain(
+      $form_state['values']['inope_policy_review_changes_requested_textarea']));
+
+    drupal_set_message(t('Node ID') . ' : ' . $node->nid);
+    drupal_set_message(t('Node VID') . ' : ' . $node->vid);
+  }
+  else {
+    drupal_set_message(t('Form state not recognized'));
+  }
+
+  $form_state['rebuild'] = TRUE;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

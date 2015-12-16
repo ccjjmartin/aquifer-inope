@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the iNope Policy feature.
+ */
+
+include_once 'feature_inope_policy.features.inc';

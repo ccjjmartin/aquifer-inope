@@ -25,11 +25,15 @@ projects:
     version: ~
   features_extra:
     version: ~
+  features_override:
+    version: ~
   fences:
     version: ~
   field_group:
     version: ~
   master:
+    version: ~
+  module_filter:
     version: ~
   panels:
     version: ~

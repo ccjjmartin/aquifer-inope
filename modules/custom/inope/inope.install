@@ -1,0 +1,32 @@
+<?php
+/**
+ * @file
+ * Install file for iNope.
+ */
+
+/**
+ * Enables the iNope Basic Configuration and Features.
+ */
+function inope_install() {
+  module_enable(array(
+    'admin_menu',
+    'ctools',
+    'devel',
+    'features',
+    'features_override',
+    'feature_inope_policy',
+    'feature_inope_site_configuration',
+    'inope_policy_review',
+    'module_filter',
+    'strongarm',
+  ), TRUE);
+  
+  module_disable(array('toolbar'), FALSE);
+  
+  features_revert_module('feature_inope_policy');
+  features_revert_module('feature_inope_site_configuration');
+  
+  drupal_flush_all_caches();
+  
+  return t('Enabled iNope Basic Configuration and Features.');
+}

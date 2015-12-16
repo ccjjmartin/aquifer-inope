@@ -1,0 +1,4 @@
+name = iNope Policy Review
+description = iNope Policy Review Module
+core = 7.x
+package = Custom
