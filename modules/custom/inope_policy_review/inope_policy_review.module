@@ -39,32 +39,14 @@ function inope_policy_review_tab_title_callback($node_nid) {
  */
 function inope_policy_review_form($form, &$form_state) {
 
-  $form['inope_policy_review_approved_checkbox'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('I have reviewed this policy and approved it for use'),
-    '#default_value' => TRUE,
-    '#states' => array(
-      'unchecked' => array(
-        ':input[name="inope_policy_review_changes_checkbox"]' => array('checked' => TRUE),
-      ),
-      'checked' => array(
-        ':input[name="inope_policy_review_changes_checkbox"]' => array('checked' => FALSE),
-      ),
-    ),
+  $status = array(
+    0 => t('I have reviewed this policy and approved it for use'),
+    1 => t('I have reviewed this policy and would like to see changes'),
   );
 
-  $form['inope_policy_review_changes_checkbox'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('I have reviewed this policy and would like to see changes'),
-    '#default_value' => 0,
-    '#states' => array(
-      'checked' => array(
-        ':input[name="inope_policy_review_approved_checkbox"]' => array('checked' => FALSE),
-      ),
-      'unchecked' => array(
-        ':input[name="inope_policy_review_approved_checkbox"]' => array('checked' => TRUE),
-      ),
-    ),
+  $form['inope_policy_review_status_radio'] = array(
+    '#type' => 'radios',
+    '#options' => $status,
   );
 
   $form['inope_policy_review_changes_requested_textarea'] = array(
@@ -73,10 +55,13 @@ function inope_policy_review_form($form, &$form_state) {
     '#default_value' => '',
     '#states' => array(
       'invisible' => array(
-        ':input[name="inope_policy_review_changes_checkbox"]' => array('checked' => FALSE),
+        ':input[name="inope_policy_review_status_radio"]' => array('value' => 0),
+      ),
+      'visible' => array(
+        ':input[name="inope_policy_review_status_radio"]' => array('value' => 1),
       ),
       'required' => array(
-        ':input[name="inope_policy_review_changes_checkbox"]' => array('checked' => TRUE),
+        ':input[name="inope_policy_review_status_radio"]' => array('value' => 1),
       ),
     ),
   );
@@ -97,10 +82,10 @@ function inope_policy_review_form_submit($form, &$form_state) {
   $node_id = array_slice(explode('/', check_plain($_GET['q'])), 1, 1);
   $node = node_load($node_id[0]);
 
-  if ($form_state['values']['inope_policy_review_approved_checkbox'] == 1) {
+  if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
     drupal_set_message(t('Policy approved for use'));
   }
-  elseif ($form_state['values']['inope_policy_review_changes_checkbox'] == 1) {
+  elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
     drupal_set_message(
       t('User : @userid : @username submitted the following change request:', array(
         '@userid' => $user->uid,
