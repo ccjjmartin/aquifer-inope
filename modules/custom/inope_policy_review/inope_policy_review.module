@@ -58,6 +58,7 @@ function inope_policy_review_permission() {
  * The iNope Policy Review Form.
  */
 function inope_policy_review_form($form, &$form_state) {
+  global $user;
 
   $status = array(
     0 => t('I have reviewed this policy and approved it for use'),
@@ -136,6 +137,7 @@ function inope_policy_review_form_validate($form, &$form_state) {
  * The iNope Policy Review Form submit handler.
  */
 function inope_policy_review_form_submit($form, &$form_state) {
+  global $user;
   $account = $user;
   $node = node_load($form_state['values']['inope_policy_review_hidden_nid']);
 
