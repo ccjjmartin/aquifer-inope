@@ -38,8 +38,7 @@ function inope_policy_review_menu() {
  */
 function inope_policy_review_tab_title_callback($node) {
   // Create the string to be used as the tab title.
-  $node_title = $node->title;
-  $title = t('Review of @node_title', array('@node_title' => $node_title));
+  $title = t('Review of @node_title', array('@node_title' => $node->title));
   return $title;
 }
 
