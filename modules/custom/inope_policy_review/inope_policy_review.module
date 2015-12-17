@@ -29,8 +29,8 @@ function inope_policy_review_menu() {
  * The page title will be 'Review of @node_title' where @node_title is replaced
  * by the title of the object returned from node_load().
  *
- * @param $nid
- *   String of numbers representing the node id passed from hook_menu.
+ * @param $node
+ *   Object representing the current node passed from hook_menu.
  * @return
  *   String of characters to be used as the title in a menu local task for
  *   policy nodes.
