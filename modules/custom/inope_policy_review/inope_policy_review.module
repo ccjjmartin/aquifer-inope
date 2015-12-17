@@ -15,7 +15,7 @@ function inope_policy_review_menu() {
     'title arguments' => array(1),
     'description' => 'Review of policy nodes.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('inope_policy_review_form'),
+    'page arguments' => array('inope_policy_review_form', 1),
     'access arguments' => array('view inope policy review'),
     'type' => MENU_LOCAL_TASK,
   );
@@ -91,8 +91,46 @@ function inope_policy_review_form($form, &$form_state) {
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
+  
+  $form['inope_policy_review_hidden_nid'] = array(
+    '#type' => 'hidden',
+    '#value' => $form_state['build_info']['args'][0],
+  );
+  
+  $form['inope_policy_review_hidden_vid'] = array(
+    '#type' => 'hidden',
+    '#value' => node_load($form_state['build_info']['args'][0])->vid,
+  );
+
+  $form['inope_policy_review_hidden_uid'] = array(
+    '#type' => 'hidden',
+    '#value' => $GLOBALS['user']->uid,
+  );
 
   return $form;
+}
+
+/**
+ * The iNope Policy Review Form validate handler.
+ */
+function inope_policy_review_form_validate($form, &$form_state) {
+  if ($form_state['values']['inope_policy_review_status_radio'] != 0 &&
+      $form_state['values']['inope_policy_review_status_radio'] != 1) {
+    form_set_error('inope_policy_review_status_radio', 'Please try again, status radio');
+  }
+  if ($form_state['values']['inope_policy_review_changes_requested_textarea'] !=
+      check_plain($form_state['values']['inope_policy_review_changes_requested_textarea'])) {
+    form_set_error('inope_policy_review_changes_requested_textarea', 'Please try again, only plain text in textarea');
+  }
+  if ($form_state['values']['inope_policy_review_hidden_uid'] != $GLOBALS['user']->uid) {
+    form_set_error('inope_policy_review_hidden_uid', 'Please try again, uid');
+  }
+  if ($form_state['values']['inope_policy_review_hidden_nid'] != arg(1)) {
+    form_set_error('inope_policy_review_hidden_nid', 'Please try again, nid');
+  }
+  if ($form_state['values']['inope_policy_review_hidden_vid'] != node_load($form_state['build_info']['args'][0])->vid) {
+    form_set_error('inope_policy_review_hidden_nid', 'Please try again, vid');
+  }
 }
 
 /**
@@ -100,11 +138,11 @@ function inope_policy_review_form($form, &$form_state) {
  */
 function inope_policy_review_form_submit($form, &$form_state) {
   $account = $GLOBALS['user'];
-  $node_id = array_slice(explode('/', check_plain($_GET['q'])), 1, 1);
-  $node = node_load($node_id[0]);
+  $node = node_load($form_state['values']['inope_policy_review_hidden_nid']);
 
   if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
     drupal_set_message(t('Policy approved for use'));
+    // TODO: put this into the database
   }
   elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
     drupal_set_message(
@@ -118,6 +156,7 @@ function inope_policy_review_form_submit($form, &$form_state) {
 
     drupal_set_message(t('Node ID : @nodeid', array('@nodeid' => $node->nid)));
     drupal_set_message(t('Node VID : @nodevid', array('@nodevid' => $node->vid)));
+    // TODO: put this into the database
   }
   else {
     drupal_set_message(t('Form state not recognized'));
