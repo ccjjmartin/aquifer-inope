@@ -10,7 +10,7 @@
 function inope_policy_review_menu() {
   $items = array();
 
-  $items['node/%/review'] = array(
+  $items['node/%node/review'] = array(
     'title callback' => 'inope_policy_review_tab_title_callback',
     'title arguments' => array(1),
     'description' => 'Review of policy nodes.',
@@ -35,8 +35,7 @@ function inope_policy_review_menu() {
  *   String of characters to be used as the title in a menu local task for
  *   policy nodes.
  */
-function inope_policy_review_tab_title_callback($nid) {
-  $node = node_load($nid);
+function inope_policy_review_tab_title_callback($node) {
   $node_title = $node->title;
   $title = t('Review of @node_title', array('@node_title' => $node_title));
   return $title;
@@ -94,12 +93,12 @@ function inope_policy_review_form($form, &$form_state) {
   
   $form['inope_policy_review_hidden_nid'] = array(
     '#type' => 'hidden',
-    '#value' => $form_state['build_info']['args'][0],
+    '#value' => $form_state['build_info']['args'][0]->nid,
   );
   
   $form['inope_policy_review_hidden_vid'] = array(
     '#type' => 'hidden',
-    '#value' => node_load($form_state['build_info']['args'][0])->vid,
+    '#value' => $form_state['build_info']['args'][0]->vid,
   );
 
   $form['inope_policy_review_hidden_uid'] = array(
@@ -128,7 +127,7 @@ function inope_policy_review_form_validate($form, &$form_state) {
   if ($form_state['values']['inope_policy_review_hidden_nid'] != arg(1)) {
     form_set_error('inope_policy_review_hidden_nid', 'Please try again, nid');
   }
-  if ($form_state['values']['inope_policy_review_hidden_vid'] != node_load($form_state['build_info']['args'][0])->vid) {
+  if ($form_state['values']['inope_policy_review_hidden_vid'] != $form_state['build_info']['args'][0]->vid) {
     form_set_error('inope_policy_review_hidden_nid', 'Please try again, vid');
   }
 }
