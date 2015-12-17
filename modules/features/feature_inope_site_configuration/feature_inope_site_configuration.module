@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the iNope Site Configuration feature.
+ */
+
+include_once 'feature_inope_site_configuration.features.inc';

@@ -1,0 +1,179 @@
+<?php
+/**
+ * @file
+ * The iNope Policy Review Module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function inope_policy_review_menu() {
+  $items = array();
+
+  $items['node/%node/review'] = array(
+    'title callback' => 'inope_policy_review_tab_title_callback',
+    'title arguments' => array(1),
+    'description' => 'Review of policy nodes.',
+    'page callback' => 'inope_policy_review_page',
+    'page arguments' => array(1),
+    'access arguments' => array('view inope policy review'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Creates the iNope policy review page title.
+ *
+ * The page title will be 'Review of @node_title' where @node_title is replaced
+ * by the title of the object returned from node_load().
+ *
+ * @param object $node
+ *   Object representing the current node passed from hook_menu.
+ *
+ * @return string
+ *   String of characters to be used as the title in a menu local task for
+ *   policy nodes.
+ */
+function inope_policy_review_tab_title_callback($node) {
+  // Create the string to be used as the tab title.
+  $title = t('Review of @node_title', array('@node_title' => $node->title));
+  return $title;
+}
+
+/**
+ * Creates the iNope policy review page.
+ *
+ * The page will call drupal_get_form() to load the inope_policy_review_form.
+ *
+ * @param object $node
+ *   Object representing the current node passed from hook_menu.
+ *
+ * @return string
+ *   String of characters to be used as the title in a menu local task for
+ *   policy nodes.
+ */
+function inope_policy_review_page($node) {
+  // Create a build array to be displayed on the page.
+  $build = array(
+    'inope_policy_review_form' => drupal_get_form('inope_policy_review_form', $node),
+  );
+  return $build;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function inope_policy_review_permission() {
+  return array(
+    'view inope policy review' => array(
+      'title' => t('View iNope Policy Review'),
+      'description' => t('View the review tab on policy node pages'),
+    ),
+  );
+}
+
+/**
+ * The iNope Policy Review Form.
+ */
+function inope_policy_review_form($form, &$form_state) {
+  global $user;
+
+  // Create radio button options (approved or changes requested).
+  $status = array(
+    0 => t('I have reviewed this policy and approved it for use'),
+    1 => t('I have reviewed this policy and would like to see changes'),
+  );
+
+  // Build the radio button.
+  $form['inope_policy_review_status_radio'] = array(
+    '#type' => 'radios',
+    '#options' => $status,
+    '#default_value' => 0,
+  );
+
+  // Create text area for feedback on changes requested option only.
+  // Also, only required when the changes requested option is selected.
+  $form['inope_policy_review_changes_requested_textarea'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Changes Requested:'),
+    '#default_value' => '',
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="inope_policy_review_status_radio"]' => array('value' => 0),
+      ),
+      'visible' => array(
+        ':input[name="inope_policy_review_status_radio"]' => array('value' => 1),
+      ),
+      'required' => array(
+        ':input[name="inope_policy_review_status_radio"]' => array('value' => 1),
+      ),
+    ),
+  );
+
+  // Store argument from the autoloader in hook_menu().
+  $node = $form_state['build_info']['args'][0];
+
+  // Store the nid for future use, not displayed to the user.
+  $form['inope_policy_review_hidden_nid'] = array(
+    '#type' => 'hidden',
+    '#value' => $node->nid,
+  );
+
+  // Store the vid for future use, not displayed to the user.
+  $form['inope_policy_review_hidden_vid'] = array(
+    '#type' => 'hidden',
+    '#value' => $node->vid,
+  );
+
+  // Store the uid for future use, not displayed to the user.
+  $form['inope_policy_review_hidden_uid'] = array(
+    '#type' => 'hidden',
+    '#value' => $user->uid,
+  );
+
+  // Create the submit button.
+  $form['inope_policy_review_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * The iNope Policy Review Form submit handler.
+ */
+function inope_policy_review_form_submit($form, &$form_state) {
+  // Load objects from which their properties will be displayed.
+  $account = user_load($form_state['values']['inope_policy_review_hidden_uid']);
+  $node = node_load($form_state['values']['inope_policy_review_hidden_nid']);
+
+  // If 'I have reviewed this policy and approved it for use' is selected.
+  if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
+    drupal_set_message(t('Policy approved for use'));
+    // TODO: put this into the database.
+  }
+  // If 'I have reviewed this policy and would like to see changes' is selected.
+  elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
+    drupal_set_message(
+      t('User : @userid : @username submitted the following change request:', array(
+        '@userid' => $account->uid,
+        '@username' => $account->name,
+      )));
+
+    drupal_set_message($form_state['values']['inope_policy_review_changes_requested_textarea']);
+
+    drupal_set_message(t('Node ID : @nodeid', array('@nodeid' => $node->nid)));
+    drupal_set_message(t('Node VID : @nodevid', array('@nodevid' => $node->vid)));
+    // TODO: put this into the database.
+  }
+  // If a bug is encountered.
+  else {
+    drupal_set_message(t('Form state not recognized'));
+  }
+
+  // Rebuild the form.
+  $form_state['rebuild'] = TRUE;
+}

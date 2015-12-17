@@ -25,22 +25,30 @@ $conf['master_modules'] = array(
 
     // Core modules.
     'block',
+    'color',
     'comment',
+    'contextual',
+    'dashboard',
+    'dblog',
     'file',
     'help',
+    'image',
     'list',
     'menu',
     'number',
     'options',
+    'overlay',
     'path',
     'rdf',
     'search',
+    'shortcut',
     'taxonomy',
     'url',
-    'views',
+    'update',
 
     // Contrib modules.
     'admin_menu',
+    'diff',
     'entity',
     'entityreference',
     'features',
@@ -48,6 +56,7 @@ $conf['master_modules'] = array(
     'fences',
     'field_group',
     'master',
+    'module_filter',
     'panels',
     'pathauto',
     'strongarm',
@@ -55,8 +64,11 @@ $conf['master_modules'] = array(
     'views',
 
     // Custom modules.
+    'inope_policy_review',
 
     // Feature modules.
+    'feature_inope_policy',
+    'feature_inope_site_configuration',
 
   ),
   'local' => array(

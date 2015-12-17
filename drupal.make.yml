@@ -17,6 +17,8 @@ projects:
     version: ~
   devel:
     version: ~
+  diff:
+    version: ~
   entity:
     version: ~
   entityreference:
@@ -31,6 +33,8 @@ projects:
     version: ~
   master:
     version: ~
+  module_filter:
+    version: ~
   panels:
     version: ~
   pathauto:
@@ -38,6 +42,8 @@ projects:
   strongarm:
     version: ~
   token:
+    version: ~
+  url:
     version: ~
   views:
     version: ~
