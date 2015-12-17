@@ -55,5 +55,15 @@ function feature_inope_policy_user_default_permissions() {
     'module' => 'node',
   );
 
+  // Exported permission: 'view inope policy review'.
+  $permissions['view inope policy review'] = array(
+    'name' => 'view inope policy review',
+    'roles' => array(
+      'administrator' => 'administrator',
+      'staff' => 'staff',
+    ),
+    'module' => 'inope_policy_review',
+  );
+
   return $permissions;
 }
