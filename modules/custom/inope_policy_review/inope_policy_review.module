@@ -16,22 +16,43 @@ function inope_policy_review_menu() {
     'description' => 'Review of policy nodes.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('inope_policy_review_form'),
-    'access arguments' => array('view published content'),
+    'access arguments' => array('view inope policy review'),
     'type' => MENU_LOCAL_TASK,
   );
-
   return $items;
 
 }
 
 /**
- * The iNope Policy Review Page Title Callback.
+ * Creates the iNope policy review page title.
+ *
+ * The page title will be 'Review of @node_title' where @node_title is replaced
+ * by the title of the object returned from node_load().
+ *
+ * @param $nid
+ *   String of numbers representing the node id passed from hook_menu.
+ * @return
+ *   String of characters to be used as the title in a menu local task for
+ *   policy nodes.
  */
-function inope_policy_review_tab_title_callback($node_nid) {
-  $node = node_load($node_nid);
+function inope_policy_review_tab_title_callback($nid) {
+  $node = node_load($nid);
   $node_title = $node->title;
   $title = t('Review of @node_title', array('@node_title' => $node_title));
   return $title;
+}
+
+
+/**
+ * Implements hook_permission().
+ */
+function inope_policy_review_permission() {
+  return array(
+    'view inope policy review' => array(
+      'title' => t('View iNope Policy Review'),
+      'description' => t('View the review tab on policy node pages'),
+    ),
+  );
 }
 
 /**
