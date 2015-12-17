@@ -14,13 +14,13 @@ function inope_policy_review_menu() {
     'title callback' => 'inope_policy_review_tab_title_callback',
     'title arguments' => array(1),
     'description' => 'Review of policy nodes.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('inope_policy_review_form', 1),
+    'page callback' => 'inope_policy_review_page',
+    'page arguments' => array(1),
     'access arguments' => array('view inope policy review'),
     'type' => MENU_LOCAL_TASK,
   );
+  
   return $items;
-
 }
 
 /**
@@ -41,6 +41,23 @@ function inope_policy_review_tab_title_callback($node) {
   return $title;
 }
 
+/**
+ * Creates the iNope policy review page.
+ *
+ * The page will call drupal_get_form() to load the inope_policy_review_form.
+ *
+ * @param $node
+ *   Object representing the current node passed from hook_menu.
+ * @return
+ *   String of characters to be used as the title in a menu local task for
+ *   policy nodes.
+ */
+function inope_policy_review_page($node) {
+  $build = array(
+    'inope_policy_review_form' => drupal_get_form('inope_policy_review_form', $node),
+  );
+  return $build;
+}
 
 /**
  * Implements hook_permission().
@@ -87,24 +104,27 @@ function inope_policy_review_form($form, &$form_state) {
     ),
   );
 
-  $form['inope_policy_review_submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
-  
+  // Argument passed from the autoloader in hook_menu().
+  $node = $form_state['build_info']['args'][0];
+
   $form['inope_policy_review_hidden_nid'] = array(
     '#type' => 'hidden',
-    '#value' => $form_state['build_info']['args'][0]->nid,
+    '#value' => $node->nid,
   );
-  
+
   $form['inope_policy_review_hidden_vid'] = array(
     '#type' => 'hidden',
-    '#value' => $form_state['build_info']['args'][0]->vid,
+    '#value' => $node->vid,
   );
 
   $form['inope_policy_review_hidden_uid'] = array(
     '#type' => 'hidden',
     '#value' => $user->uid,
+  );
+
+  $form['inope_policy_review_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
   );
 
   return $form;
