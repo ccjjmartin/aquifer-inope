@@ -17,6 +17,8 @@ projects:
     version: ~
   devel:
     version: ~
+  diff:
+    version: ~
   entity:
     version: ~
   entityreference:

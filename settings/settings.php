@@ -48,6 +48,7 @@ $conf['master_modules'] = array(
 
     // Contrib modules.
     'admin_menu',
+    'diff',
     'entity',
     'entityreference',
     'features',
