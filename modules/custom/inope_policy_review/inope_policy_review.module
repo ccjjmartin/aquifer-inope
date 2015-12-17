@@ -122,15 +122,6 @@ function inope_policy_review_form_validate($form, &$form_state) {
       check_plain($form_state['values']['inope_policy_review_changes_requested_textarea'])) {
     form_set_error('inope_policy_review_changes_requested_textarea', 'Please try again, only plain text in textarea');
   }
-  if ($form_state['values']['inope_policy_review_hidden_uid'] != $GLOBALS['user']->uid) {
-    form_set_error('inope_policy_review_hidden_uid', 'Please try again, uid');
-  }
-  if ($form_state['values']['inope_policy_review_hidden_nid'] != arg(1)) {
-    form_set_error('inope_policy_review_hidden_nid', 'Please try again, nid');
-  }
-  if ($form_state['values']['inope_policy_review_hidden_vid'] != $form_state['build_info']['args'][0]->vid) {
-    form_set_error('inope_policy_review_hidden_nid', 'Please try again, vid');
-  }
 }
 
 /**
