@@ -99,7 +99,7 @@ function inope_policy_review_form($form, &$form_state) {
  * The iNope Policy Review Form submit handler.
  */
 function inope_policy_review_form_submit($form, &$form_state) {
-  $user = $GLOBALS['user'];
+  $account = $GLOBALS['user'];
   $node_id = array_slice(explode('/', check_plain($_GET['q'])), 1, 1);
   $node = node_load($node_id[0]);
 
@@ -109,8 +109,8 @@ function inope_policy_review_form_submit($form, &$form_state) {
   elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
     drupal_set_message(
       t('User : @userid : @username submitted the following change request:', array(
-        '@userid' => $user->uid,
-        '@username' => $user->name,
+        '@userid' => $account->uid,
+        '@username' => $account->name,
       )));
 
     drupal_set_message(check_plain(
