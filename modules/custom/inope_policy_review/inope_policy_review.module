@@ -90,6 +90,7 @@ function inope_policy_review_form($form, &$form_state) {
   $form['inope_policy_review_status_radio'] = array(
     '#type' => 'radios',
     '#options' => $status,
+    '#default_value' => 0,
   );
 
   // Create text area for feedback on changes requested option only.
