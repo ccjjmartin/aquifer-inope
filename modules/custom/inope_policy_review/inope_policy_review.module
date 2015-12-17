@@ -131,20 +131,6 @@ function inope_policy_review_form($form, &$form_state) {
 }
 
 /**
- * The iNope Policy Review Form validate handler.
- */
-function inope_policy_review_form_validate($form, &$form_state) {
-  if ($form_state['values']['inope_policy_review_status_radio'] != 0 &&
-      $form_state['values']['inope_policy_review_status_radio'] != 1) {
-    form_set_error('inope_policy_review_status_radio', 'Please try again, status radio');
-  }
-  if ($form_state['values']['inope_policy_review_changes_requested_textarea'] !=
-      check_plain($form_state['values']['inope_policy_review_changes_requested_textarea'])) {
-    form_set_error('inope_policy_review_changes_requested_textarea', 'Please try again, only plain text in textarea');
-  }
-}
-
-/**
  * The iNope Policy Review Form submit handler.
  */
 function inope_policy_review_form_submit($form, &$form_state) {
