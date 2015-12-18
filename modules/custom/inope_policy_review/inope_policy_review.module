@@ -55,10 +55,31 @@ function inope_policy_review_tab_title_callback($node) {
  *   policy nodes.
  */
 function inope_policy_review_page($node) {
-  // Create a build array to be displayed on the page.
-  $build = array(
-    'inope_policy_review_form' => drupal_get_form('inope_policy_review_form', $node),
-  );
+  global $user;
+  $account = $user;
+  $build = array();
+
+  // TODO: Ask client if they want previously submitted approval to be allowed
+  // to be overwritten, this is the current functionality.
+  $results = inope_policy_review_select_query($node, $account, 0);
+
+  // TODO: When the form is rebuilt query above this doesn't pick up the new
+  // entry.
+  // If the active user has previously submitted something only display a
+  // message.
+  if (!empty($results)) {
+    $build['message'] = array(
+      '#type' => 'markup',
+      '#markup' => t('Thank you for your feedback!
+      Please check back often for additional review.'),
+    );
+  } 
+  else {
+    // If no results build a blank form
+    $build['inope_policy_review_form'] 
+      = drupal_get_form('inope_policy_review_form', $node);
+  }
+
   return $build;
 }
 
@@ -72,45 +93,6 @@ function inope_policy_review_permission() {
       'description' => t('View the review tab on policy node pages'),
     ),
   );
-}
-
-/**
- * Implements hook_form_alter().
- */
-function inope_policy_review_form_alter(&$form, &$form_state, $form_id) {
-
-  global $user;
-  $account = $user;
-
-  // Store argument from the autoloader in hook_menu().
-  $node = $form_state['build_info']['args'][0];
-
-  // Check that we are only altering the inope policy review form.
-  if ($form_id == 'inope_policy_review_form') {
-
-    // Query the policy review table for any records related to the current
-    // node, unapproved notes, and are from the current user.
-    $results = db_select('policy_review', 'pr')
-      ->fields('pr')
-      ->condition('nid', $node->nid, '=')
-      ->condition('note_status', 0, '=')
-      ->condition('uid', $account->uid, '=')
-      ->execute()
-      ->fetchAssoc();
-
-    // If the active user has submitted something and is not an administrator
-    // clear the form items we don't want to show and show a message.
-    if (!empty($results) && !in_array('administrator', $account->roles)) {
-      $form['inope_policy_review_status_radio'] = array();
-      $form['inope_policy_review_changes_requested_textarea'] = array();
-      $form['inope_policy_review_submit'] = array();
-      $form['message'] = array(
-        '#type' => 'markup',
-        '#markup' => t('Thank you for your feedback!
-        Please check back often for additional review.'),
-      );
-    }
-  }
 }
 
 /**
@@ -190,60 +172,35 @@ function inope_policy_review_form_submit($form, &$form_state) {
   // Load objects from which their properties will be displayed.
   $account = user_load($form_state['values']['inope_policy_review_hidden_uid']);
   $node = node_load($form_state['values']['inope_policy_review_hidden_nid']);
-
+  $text = check_plain($form_state['values']['inope_policy_review_changes_requested_textarea']);
+  
   // If 'I have reviewed this policy and approved it for use' is selected.
   if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
 
-    // Only administrators should be able to approve notes.
-    if (in_array('administrator', $account->roles)) {
+    $policy_review_id = inope_policy_review_insert_query($node, $account, '', 1);
 
-      // Run an update query on the policy review table to set the note_status
-      // as approved where the fields are equal to the current node and are
-      // unapproved.
-      $updated_records = db_update('policy_review')
-        ->fields(array(
-          'note_status' => 1,
-        ))
-        ->condition('nid', $node->nid, '=')
-        ->condition('note_status', 0, '=')
-        ->execute();
-
-      drupal_set_message(t('Policy approved for use @number records updated', array(
-        '@number' => $updated_records,
-      )));
+    if ($policy_review_id != 0) {
+      // Thank the user for their approval.
+      drupal_set_message(
+        t('Thank you @username for approving the policy', array(
+          '@username' => $account->name,
+        )));
     }
-    // Staff will receive this warning message.
-    else {
-      drupal_set_message(t('Please contact your administrator for approval.'),
-        'warning');
-    }
-
   }
   // If 'I have reviewed this policy and would like to see changes' is selected.
   elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
 
-    // Make code more legible by setting a variable here.
-    $text = $form_state['values']['inope_policy_review_changes_requested_textarea'];
+    $policy_review_id = inope_policy_review_insert_query($node, $account, $text, 0);
 
-    // Run an insert query on the policy review table for the new note.
-    $policy_review_id = db_insert('policy_review')
-      ->fields(array(
-        'nid' => $node->nid,
-        'vid' => $node->vid,
-        'uid' => $account->uid,
-        'note_status' => 0,
-        'note_submitted' => time(),
-        'note' => $text,
-      ))
-      ->execute();
-
-    // Thank the user for their request.
-    drupal_set_message(
-      t('Thank you @username for submitting the following change request:', array(
-        '@username' => $account->name,
-      )));
-
-    drupal_set_message($text);
+    if ($policy_review_id != 0) {
+      // Thank the user for their request.
+      drupal_set_message(
+        t('Thank you @username for submitting the following change request:', array(
+          '@username' => $account->name,
+        )));
+      // Check_plain happened when this variable was declared.
+      drupal_set_message($text);
+    }
   }
   // If a bug is encountered.
   else {
@@ -252,4 +209,81 @@ function inope_policy_review_form_submit($form, &$form_state) {
 
   // Rebuild the form.
   $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Select query for the current node policy review notes.
+ * 
+ * Query the policy review table for any records related to the current
+ * node, note status, and are from the current user.
+ */
+function inope_policy_review_select_query($node, $account, $status) {
+  
+  $results = db_query(
+    "SELECT * FROM {policy_review} WHERE nid = :nid AND note_status =
+     :note_status AND uid = :uid ORDER BY note_submitted DESC", array(
+      ':nid' => $node->nid,
+      ':note_status' => $status,
+      ':uid' => $account->uid,
+    ))->fetchAll();
+  
+  return $results;
+}
+
+/**
+ * Insert query to add a new policy review note or approve policy.
+ * 
+ * Only insert the new row if it is substantially a new request meaning that
+ * some value other than the timestamp is different
+ */
+function inope_policy_review_insert_query($node, $account, $text, $status) {
+  
+  $results = inope_policy_review_select_query($node, $account, $status);
+  
+  // If the entry already exists don't duplicate it
+  if (!empty($results) && 
+      $results[0]->nid == $node->nid &&
+      $results[0]->vid == $node->vid &&
+      $results[0]->uid == $account->uid &&
+      $results[0]->note_status == $status &&
+      $results[0]->note == $text) {
+    drupal_set_message(t('You have previously submitted this response.'));
+    $policy_review_id = 0;
+  }
+  else {
+    // Run an insert query on the policy review table for the new note.
+    $policy_review_id = db_insert('policy_review')
+      ->fields(array(
+        'nid' => $node->nid,
+        'vid' => $node->vid,
+        'uid' => $account->uid,
+        'note_status' => $status,
+        'note_submitted' => time(),
+        'note' => $text,
+      ))
+      ->execute();
+  }
+  
+  return $policy_review_id;
+}
+
+/**
+ * Update query if the user wants to update a record.
+ * 
+ * Currently this funtion is not called anywhere but it is avaliable for future 
+ * use.
+ */
+function inope_policy_review_update_query($node, $account, $text, $timestamp) {
+  
+  // Run an update query on the policy review table to change the note.
+  $updated_records = db_update('policy_review')
+    ->fields(array(
+      'note' => $text,
+    ))
+    ->condition('nid', $node->nid, '=')
+    ->condition('uid', $account->uid, '=')
+    ->condition('note_submitted', $timestamp, '=')
+    ->execute();
+  
+  return $updated_records;
 }
