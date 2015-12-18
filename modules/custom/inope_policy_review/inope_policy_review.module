@@ -211,7 +211,7 @@ function inope_policy_review_form_submit($form, &$form_state) {
  * Query the policy review table for any records related to the current
  * node, note status, and are from the current user.
  */
-function inope_policy_review_select_query($node, $account, $status = NULL) {
+function inope_policy_review_select_query($node, $account) {
 
   // Select query to get the latest node revision timestamp.
   $node_revision = db_query("
@@ -239,16 +239,11 @@ function inope_policy_review_select_query($node, $account, $status = NULL) {
  */
 function inope_policy_review_insert_query($node, $account, $text, $status) {
 
-  $results = inope_policy_review_select_query($node, $account, $status);
+  $results = inope_policy_review_select_query($node, $account);
 
   // If the entry already exists don't duplicate it.
-  if (!empty($results) &&
-      $results[0]->nid == $node->nid &&
-      $results[0]->vid == $node->vid &&
-      $results[0]->uid == $account->uid &&
-      $results[0]->note_status == $status &&
-      $results[0]->note == $text) {
-    drupal_set_message(t('You have previously submitted this response.'));
+  if (!empty($results)) {
+    drupal_set_message(t('You have previously submitted a response.'));
     $policy_review_id = 0;
   }
   else {
