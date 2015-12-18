@@ -59,12 +59,9 @@ function inope_policy_review_page($node) {
   $account = $user;
   $build = array();
 
-  // TODO: Ask client if they want previously submitted approval to be allowed
-  // to be overwritten, this is the current functionality.
-  $results = inope_policy_review_select_query($node, $account, 0);
+  // Retreive all notes related to this node and account.
+  $results = inope_policy_review_select_query($node, $account);
 
-  // TODO: When the form is rebuilt query above this doesn't pick up the new
-  // entry.
   // If the active user has previously submitted something only display a
   // message.
   if (!empty($results)) {
@@ -206,9 +203,6 @@ function inope_policy_review_form_submit($form, &$form_state) {
   else {
     drupal_set_message(t('Form state not recognized'));
   }
-
-  // Rebuild the form.
-  $form_state['rebuild'] = TRUE;
 }
 
 /**
@@ -217,16 +211,28 @@ function inope_policy_review_form_submit($form, &$form_state) {
  * Query the policy review table for any records related to the current
  * node, note status, and are from the current user.
  */
-function inope_policy_review_select_query($node, $account, $status) {
+function inope_policy_review_select_query($node, $account, $status = NULL) {
   
-  $results = db_query(
+  // We need the ability to return all records regardless of status so we change
+  // the query based off of status = null or status = something defined.
+  if ($status == NULL) {
+    $results = db_query(
+    "SELECT * FROM {policy_review} WHERE nid = :nid AND uid = :uid ORDER BY 
+     note_submitted DESC", array(
+      ':nid' => $node->nid,
+      ':uid' => $account->uid,
+    ))->fetchAll();
+  } 
+  else {
+    $results = db_query(
     "SELECT * FROM {policy_review} WHERE nid = :nid AND note_status =
      :note_status AND uid = :uid ORDER BY note_submitted DESC", array(
       ':nid' => $node->nid,
       ':note_status' => $status,
       ':uid' => $account->uid,
     ))->fetchAll();
-  
+  }
+    
   return $results;
 }
 
