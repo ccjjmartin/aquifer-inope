@@ -70,10 +70,10 @@ function inope_policy_review_page($node) {
       '#markup' => t('Thank you for your feedback!
       Please check back often for additional review.'),
     );
-  } 
+  }
   else {
-    // If no results build a blank form
-    $build['inope_policy_review_form'] 
+    // If no results build a blank form.
+    $build['inope_policy_review_form']
       = drupal_get_form('inope_policy_review_form', $node);
   }
 
@@ -170,7 +170,7 @@ function inope_policy_review_form_submit($form, &$form_state) {
   $account = user_load($form_state['values']['inope_policy_review_hidden_uid']);
   $node = node_load($form_state['values']['inope_policy_review_hidden_nid']);
   $text = check_plain($form_state['values']['inope_policy_review_changes_requested_textarea']);
-  
+
   // If 'I have reviewed this policy and approved it for use' is selected.
   if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
 
@@ -207,47 +207,47 @@ function inope_policy_review_form_submit($form, &$form_state) {
 
 /**
  * Select query for the current node policy review notes.
- * 
+ *
  * Query the policy review table for any records related to the current
  * node, note status, and are from the current user.
  */
 function inope_policy_review_select_query($node, $account, $status = NULL) {
-  
+
   // We need the ability to return all records regardless of status so we change
   // the query based off of status = null or status = something defined.
   if ($status == NULL) {
-    $results = db_query(
-    "SELECT * FROM {policy_review} WHERE nid = :nid AND uid = :uid ORDER BY 
-     note_submitted DESC", array(
+    $results = db_query("
+    SELECT * FROM {policy_review} WHERE nid = :nid AND uid = :uid ORDER BY 
+    note_submitted DESC", array(
       ':nid' => $node->nid,
       ':uid' => $account->uid,
     ))->fetchAll();
-  } 
+  }
   else {
-    $results = db_query(
-    "SELECT * FROM {policy_review} WHERE nid = :nid AND note_status =
-     :note_status AND uid = :uid ORDER BY note_submitted DESC", array(
+    $results = db_query("
+    SELECT * FROM {policy_review} WHERE nid = :nid AND note_status =
+    :note_status AND uid = :uid ORDER BY note_submitted DESC", array(
       ':nid' => $node->nid,
       ':note_status' => $status,
       ':uid' => $account->uid,
     ))->fetchAll();
   }
-    
+
   return $results;
 }
 
 /**
  * Insert query to add a new policy review note or approve policy.
- * 
+ *
  * Only insert the new row if it is substantially a new request meaning that
- * some value other than the timestamp is different
+ * some value other than the timestamp is different.
  */
 function inope_policy_review_insert_query($node, $account, $text, $status) {
-  
+
   $results = inope_policy_review_select_query($node, $account, $status);
-  
-  // If the entry already exists don't duplicate it
-  if (!empty($results) && 
+
+  // If the entry already exists don't duplicate it.
+  if (!empty($results) &&
       $results[0]->nid == $node->nid &&
       $results[0]->vid == $node->vid &&
       $results[0]->uid == $account->uid &&
@@ -269,18 +269,18 @@ function inope_policy_review_insert_query($node, $account, $text, $status) {
       ))
       ->execute();
   }
-  
+
   return $policy_review_id;
 }
 
 /**
  * Update query if the user wants to update a record.
- * 
- * Currently this funtion is not called anywhere but it is avaliable for future 
+ *
+ * Currently this funtion is not called anywhere but it is avaliable for future
  * use.
  */
 function inope_policy_review_update_query($node, $account, $text, $timestamp) {
-  
+
   // Run an update query on the policy review table to change the note.
   $updated_records = db_update('policy_review')
     ->fields(array(
@@ -290,6 +290,6 @@ function inope_policy_review_update_query($node, $account, $text, $timestamp) {
     ->condition('uid', $account->uid, '=')
     ->condition('note_submitted', $timestamp, '=')
     ->execute();
-  
+
   return $updated_records;
 }
