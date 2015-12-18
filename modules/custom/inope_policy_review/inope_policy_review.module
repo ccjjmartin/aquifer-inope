@@ -213,27 +213,22 @@ function inope_policy_review_form_submit($form, &$form_state) {
  */
 function inope_policy_review_select_query($node, $account, $status = NULL) {
 
-  // We need the ability to return all records regardless of status so we change
-  // the query based off of status = null or status = something defined.
-  if ($status == NULL) {
-    $results = db_query("
-    SELECT * FROM {policy_review} WHERE nid = :nid AND uid = :uid ORDER BY 
-    note_submitted DESC", array(
-      ':nid' => $node->nid,
-      ':uid' => $account->uid,
-    ))->fetchAll();
-  }
-  else {
-    $results = db_query("
-    SELECT * FROM {policy_review} WHERE nid = :nid AND note_status =
-    :note_status AND uid = :uid ORDER BY note_submitted DESC", array(
-      ':nid' => $node->nid,
-      ':note_status' => $status,
-      ':uid' => $account->uid,
-    ))->fetchAll();
-  }
+  // Select query to get the latest node revision timestamp.
+  $node_revision = db_query("
+  SELECT vid, timestamp FROM {node_revision} WHERE vid = :vid", array(
+    ':vid' => $node->vid,
+  ))->fetchObject();
 
-  return $results;
+  // Select query to get all records with a note_sumbitted >= vid_timestamp.
+  $policy_review_notes = db_query("
+  SELECT * FROM {policy_review} WHERE nid = :nid AND uid = :uid AND 
+  note_submitted >= :vid_timestamp ORDER BY note_submitted DESC", array(
+    ':nid' => $node->nid,
+    ':uid' => $account->uid,
+    ':vid_timestamp' => $node_revision->timestamp,
+  ))->fetchAll();
+
+  return $policy_review_notes;
 }
 
 /**
