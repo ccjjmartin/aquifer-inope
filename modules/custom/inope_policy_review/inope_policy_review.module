@@ -75,10 +75,51 @@ function inope_policy_review_permission() {
 }
 
 /**
+ * Implements hook_form_alter().
+ */
+function inope_policy_review_form_alter(&$form, &$form_state, $form_id) {
+
+  global $user;
+  $account = $user;
+
+  // Store argument from the autoloader in hook_menu().
+  $node = $form_state['build_info']['args'][0];
+
+  // Check that we are only altering the inope policy review form.
+  if ($form_id == 'inope_policy_review_form') {
+
+    // Query the policy review table for any records related to the current
+    // node, unapproved notes, and are from the current user.
+    $results = db_select('policy_review', 'pr')
+      ->fields('pr')
+      ->condition('nid', $node->nid, '=')
+      ->condition('note_status', 0, '=')
+      ->condition('uid', $account->uid, '=')
+      ->execute()
+      ->fetchAssoc();
+
+    // If the active user has submitted something and is not an administrator
+    // clear the form items we don't want to show and show a message.
+    if (!empty($results) && !in_array('administrator', $account->roles)) {
+      $form['inope_policy_review_status_radio'] = array();
+      $form['inope_policy_review_changes_requested_textarea'] = array();
+      $form['inope_policy_review_submit'] = array();
+      $form['message'] = array(
+        '#type' => 'markup',
+        '#markup' => t('Thank you for your feedback!
+        Please check back often for additional review.'),
+      );
+    }
+  }
+}
+
+/**
  * The iNope Policy Review Form.
  */
 function inope_policy_review_form($form, &$form_state, $node) {
   global $user;
+
+  $account = $user;
 
   // Create radio button options (approved or changes requested).
   $status = array(
@@ -130,7 +171,7 @@ function inope_policy_review_form($form, &$form_state, $node) {
   // Store the uid for future use, not displayed to the user.
   $form['inope_policy_review_hidden_uid'] = array(
     '#type' => 'hidden',
-    '#value' => $user->uid,
+    '#value' => $account->uid,
   );
 
   // Create the submit button.
@@ -152,22 +193,57 @@ function inope_policy_review_form_submit($form, &$form_state) {
 
   // If 'I have reviewed this policy and approved it for use' is selected.
   if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
-    drupal_set_message(t('Policy approved for use'));
-    // TODO: put this into the database.
+
+    // Only administrators should be able to approve notes.
+    if (in_array('administrator', $account->roles)) {
+
+      // Run an update query on the policy review table to set the note_status
+      // as approved where the fields are equal to the current node and are
+      // unapproved.
+      $updated_records = db_update('policy_review')
+        ->fields(array(
+          'note_status' => 1,
+        ))
+        ->condition('nid', $node->nid, '=')
+        ->condition('note_status', 0, '=')
+        ->execute();
+
+      drupal_set_message(t('Policy approved for use @number records updated', array(
+        '@number' => $updated_records,
+      )));
+    }
+    // Staff will receive this warning message.
+    else {
+      drupal_set_message(t('Please contact your administrator for approval.'),
+        'warning');
+    }
+
   }
   // If 'I have reviewed this policy and would like to see changes' is selected.
   elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
+
+    // Make code more legible by setting a variable here.
+    $text = $form_state['values']['inope_policy_review_changes_requested_textarea'];
+
+    // Run an insert query on the policy review table for the new note.
+    $policy_review_id = db_insert('policy_review')
+      ->fields(array(
+        'nid' => $node->nid,
+        'vid' => $node->vid,
+        'uid' => $account->uid,
+        'note_status' => 0,
+        'note_submitted' => time(),
+        'note' => $text,
+      ))
+      ->execute();
+
+    // Thank the user for their request.
     drupal_set_message(
-      t('User : @userid : @username submitted the following change request:', array(
-        '@userid' => $account->uid,
+      t('Thank you @username for submitting the following change request:', array(
         '@username' => $account->name,
       )));
 
-    drupal_set_message($form_state['values']['inope_policy_review_changes_requested_textarea']);
-
-    drupal_set_message(t('Node ID : @nodeid', array('@nodeid' => $node->nid)));
-    drupal_set_message(t('Node VID : @nodevid', array('@nodevid' => $node->vid)));
-    // TODO: put this into the database.
+    drupal_set_message($text);
   }
   // If a bug is encountered.
   else {
