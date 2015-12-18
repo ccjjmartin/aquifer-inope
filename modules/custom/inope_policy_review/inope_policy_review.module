@@ -77,7 +77,7 @@ function inope_policy_review_permission() {
 /**
  * The iNope Policy Review Form.
  */
-function inope_policy_review_form($form, &$form_state) {
+function inope_policy_review_form($form, &$form_state, $node) {
   global $user;
 
   // Create radio button options (approved or changes requested).
