@@ -59,8 +59,8 @@ function inope_policy_review_schema() {
     'indexes' => array(
       'note_active' => array(
         'nid',
-        'note_status',
         'uid',
+        'note_submitted',
       ),
     ),
     'foreign keys' => array(
