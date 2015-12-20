@@ -497,9 +497,6 @@ function inope_policy_review_table($node, $account, $report_page = FALSE) {
       'data' => t('Note'),
       'field' => 'pr.note',
     ),
-    'Edit' => array(
-      'data' => '',
-    ),
   );
 
   // Change the header based on administrator role access.
