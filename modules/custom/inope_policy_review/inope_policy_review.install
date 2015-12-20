@@ -104,3 +104,10 @@ function inope_policy_review_update_7101() {
       ->execute();
   }
 }
+
+/**
+ * Revert feature_inope_policy for new permission.
+ */
+function inope_policy_review_update_7102() {
+  features_revert_module('feature_inope_policy');
+}

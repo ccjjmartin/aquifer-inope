@@ -10,6 +10,15 @@
 function feature_inope_policy_user_default_permissions() {
   $permissions = array();
 
+  // Exported permission: 'administer inope policy review'.
+  $permissions['administer inope policy review'] = array(
+    'name' => 'administer inope policy review',
+    'roles' => array(
+      'administrator' => 'administrator',
+    ),
+    'module' => 'inope_policy_review',
+  );
+
   // Exported permission: 'create inope_policy content'.
   $permissions['create inope_policy content'] = array(
     'name' => 'create inope_policy content',
