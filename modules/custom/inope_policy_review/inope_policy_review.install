@@ -91,3 +91,16 @@ function inope_policy_review_update_7100() {
     drupal_install_schema('inope_policy_review');
   }
 }
+
+/**
+ * Update the database policy_review table note_status field boolean value.
+ */
+function inope_policy_review_update_7101() {
+  // To make the note_status field match the status radio button value we need
+  // to switch the boolean value.
+  if (db_table_exists('policy_review') == TRUE) {
+    db_update('policy_review')
+      ->expression('note_status', 'NOT note_status')
+      ->execute();
+  }
+}

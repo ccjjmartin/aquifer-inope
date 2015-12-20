@@ -37,8 +37,30 @@ function inope_policy_review_menu() {
  *   policy nodes.
  */
 function inope_policy_review_tab_title_callback($node) {
+
+  global $user;
+  $account = $user;
+
   // Create the string to be used as the tab title.
   $title = t('Review of @node_title', array('@node_title' => $node->title));
+
+  // Retreive all notes related to this node, account, and vid_timestamp.
+  $results = inope_policy_review_select_query_all($node, $account);
+  $node_revision = inope_policy_review_select_query_timestamp($node);
+
+  // Change the title based off last submission.
+  if (empty($results)) {
+    $title .= ' (NEW)';
+    drupal_set_message(t('This is a new policy, please provide feedback.'), 'status', $repeat = FALSE);
+  }
+  elseif ($results[0]->note_submitted < $node_revision->timestamp) {
+    $title .= ' (UPDATED)';
+    drupal_set_message(t('This policy has been updated, please provide feedback.'), 'status', $repeat = FALSE);
+  }
+  else {
+    // Return the normal title without changes.
+  }
+
   return $title;
 }
 
@@ -58,23 +80,48 @@ function inope_policy_review_page($node) {
   global $user;
   $account = $user;
   $build = array();
+  $policy_review_id = NULL;
+
+  // Get the parameters passed in the url and if possible set policy_review_id.
+  $get_params = drupal_get_query_parameters();
+  if (!empty($get_params['id'])) {
+    $policy_review_id = $get_params['id'];
+  }
 
   // Retreive all notes related to this node and account.
   $results = inope_policy_review_select_query($node, $account);
 
   // If the active user has previously submitted something only display a
   // message.
-  if (!empty($results)) {
+  if (empty($results)) {
+    // If no results build a blank form.
+    $build['inope_policy_review_form']
+      = drupal_get_form('inope_policy_review_form', $node);
+  }
+  elseif ($policy_review_id == NULL) {
+    // If results and no id requested show message and table of results.
     $build['message'] = array(
       '#type' => 'markup',
       '#markup' => t('Thank you for your feedback!
       Please check back often for additional review.'),
     );
+    $build['table'] = array(
+      '#type' => 'markup',
+      '#markup' => inope_policy_review_table($node, $account),
+    );
+  }
+  elseif (!empty($policy_review_id)) {
+    // Build a form with the requested policy_review_id.
+    $build['inope_policy_review_form']
+      = drupal_get_form('inope_policy_review_form', $node, $policy_review_id);
   }
   else {
-    // If no results build a blank form.
-    $build['inope_policy_review_form']
-      = drupal_get_form('inope_policy_review_form', $node);
+    // Page state not recognized.
+    $build['message'] = array(
+      '#type' => 'markup',
+      '#markup' => t('There seems to be a problem please contact your site
+        administrator.'),
+    );
   }
 
   return $build;
@@ -95,10 +142,30 @@ function inope_policy_review_permission() {
 /**
  * The iNope Policy Review Form.
  */
-function inope_policy_review_form($form, &$form_state, $node) {
+function inope_policy_review_form($form, &$form_state, $node, $policy_review_id = NULL) {
+  // Set active account.
   global $user;
-
   $account = $user;
+
+  // Set default values.
+  $status_radio_default_value = 0;
+  $changes_requested_textarea_default_value = '';
+  $policy_review_id_default_value = NULL;
+
+  // Override default values $primary_key is set.
+  if (!empty($policy_review_id)) {
+    $policy_review_note = inope_policy_review_select_query_one($policy_review_id);
+
+    // Check user access then set default form values to old note values.
+    if ($account->uid == $policy_review_note->uid) {
+      $status_radio_default_value = $policy_review_note->note_status;
+      $changes_requested_textarea_default_value = $policy_review_note->note;
+      $policy_review_id_default_value = $policy_review_note->policy_review_id;
+    }
+    else {
+      drupal_goto('node/' . $node->nid . '/review');
+    }
+  }
 
   // Create radio button options (approved or changes requested).
   $status = array(
@@ -110,7 +177,7 @@ function inope_policy_review_form($form, &$form_state, $node) {
   $form['inope_policy_review_status_radio'] = array(
     '#type' => 'radios',
     '#options' => $status,
-    '#default_value' => 0,
+    '#default_value' => $status_radio_default_value,
   );
 
   // Create text area for feedback on changes requested option only.
@@ -118,7 +185,7 @@ function inope_policy_review_form($form, &$form_state, $node) {
   $form['inope_policy_review_changes_requested_textarea'] = array(
     '#type' => 'textarea',
     '#title' => t('Changes Requested:'),
-    '#default_value' => '',
+    '#default_value' => $changes_requested_textarea_default_value,
     '#states' => array(
       'invisible' => array(
         ':input[name="inope_policy_review_status_radio"]' => array('value' => 0),
@@ -132,8 +199,11 @@ function inope_policy_review_form($form, &$form_state, $node) {
     ),
   );
 
-  // Store argument from the autoloader in hook_menu().
-  $node = $form_state['build_info']['args'][0];
+  // Store the policy_review_id for future use, not displayed to the user.
+  $form['inope_policy_review_hidden_policy_review_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $policy_review_id_default_value,
+  );
 
   // Store the nid for future use, not displayed to the user.
   $form['inope_policy_review_hidden_nid'] = array(
@@ -164,45 +234,94 @@ function inope_policy_review_form($form, &$form_state, $node) {
 
 /**
  * The iNope Policy Review Form submit handler.
+ *
+ * This submit handler is broken up into 5 parts.
+ * PART 1 - Set variables and load necessary objects.
+ * PART 2 - Update existing entries if policy review id is a non empty string.
+ * PART 3 - Insert an approved response.
+ * PART 4 - Insert a changes requested response.
+ * PART 5 - Catch errors.
  */
 function inope_policy_review_form_submit($form, &$form_state) {
-  // Load objects from which their properties will be displayed.
+  // PART 1 - Load objects from which their properties will be displayed.
   $account = user_load($form_state['values']['inope_policy_review_hidden_uid']);
   $node = node_load($form_state['values']['inope_policy_review_hidden_nid']);
   $text = check_plain($form_state['values']['inope_policy_review_changes_requested_textarea']);
 
-  // If 'I have reviewed this policy and approved it for use' is selected.
-  if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
+  // PART 2 - Check to see if we are updating an existing entry by checking if
+  // the form value hidden_policy_review_id is set to a non empty string.
+  if ($form_state['values']['inope_policy_review_hidden_policy_review_id'] != '') {
 
-    $policy_review_id = inope_policy_review_insert_query($node, $account, '', 1);
+    // Run the update query using form_state values.
+    inope_policy_review_update_query($form_state);
 
-    if ($policy_review_id != 0) {
-      // Thank the user for their approval.
-      drupal_set_message(
-        t('Thank you @username for approving the policy', array(
-          '@username' => $account->name,
-        )));
-    }
+    // Clear previous messages and thank the user for their update.
+    drupal_get_messages();
+    drupal_set_message(
+      t('Thank you @username for your update to the policy', array(
+        '@username' => $account->name,
+      )));
+
+    // Send the user back to the main review page for the node.
+    drupal_goto('node/' . $node->nid . '/review');
+
   }
-  // If 'I have reviewed this policy and would like to see changes' is selected.
-  elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
-
-    $policy_review_id = inope_policy_review_insert_query($node, $account, $text, 0);
-
-    if ($policy_review_id != 0) {
-      // Thank the user for their request.
-      drupal_set_message(
-        t('Thank you @username for submitting the following change request:', array(
-          '@username' => $account->name,
-        )));
-      // Check_plain happened when this variable was declared.
-      drupal_set_message($text);
-    }
-  }
-  // If a bug is encountered.
   else {
-    drupal_set_message(t('Form state not recognized'));
+    // PART 3 - If 'I have reviewed this policy and approved it for use' is
+    // selected then insert values into the database.
+    if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
+
+      $policy_review_id = inope_policy_review_insert_query($node, $account, '', 0);
+
+      if ($policy_review_id != 0) {
+
+        // Clear previous messages and thank the user for their approval.
+        drupal_get_messages();
+        drupal_set_message(
+          t('Thank you @username for approving the policy', array(
+            '@username' => $account->name,
+          )));
+      }
+    }
+    // PART 4 - If 'I have reviewed this policy and would like to see changes'
+    // is selected then insert values into the database.
+    elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
+
+      $policy_review_id = inope_policy_review_insert_query($node, $account, $text, 1);
+
+      if ($policy_review_id != 0) {
+
+        // Clear previous messages and thank the user for their request.
+        drupal_get_messages();
+        drupal_set_message(
+          t('Thank you @username for submitting the following change request:', array(
+            '@username' => $account->name,
+          )));
+
+        // Check_plain happened when this variable was declared.
+        drupal_set_message($text);
+      }
+    }
+    // PART 5 - Catch errors.
+    else {
+      drupal_set_message(t('Form state not recognized, please contact your
+        administrator'));
+    }
   }
+}
+
+/**
+ * Select query for the current node revision timestamp.
+ */
+function inope_policy_review_select_query_timestamp($node) {
+
+  // Select query to get the latest node revision timestamp.
+  $node_revision = db_query("
+  SELECT vid, timestamp FROM {node_revision} WHERE vid = :vid", array(
+    ':vid' => $node->vid,
+  ))->fetchObject();
+
+  return $node_revision;
 }
 
 /**
@@ -214,10 +333,7 @@ function inope_policy_review_form_submit($form, &$form_state) {
 function inope_policy_review_select_query($node, $account) {
 
   // Select query to get the latest node revision timestamp.
-  $node_revision = db_query("
-  SELECT vid, timestamp FROM {node_revision} WHERE vid = :vid", array(
-    ':vid' => $node->vid,
-  ))->fetchObject();
+  $node_revision = inope_policy_review_select_query_timestamp($node);
 
   // Select query to get all records with a note_sumbitted >= vid_timestamp.
   $policy_review_notes = db_query("
@@ -229,6 +345,39 @@ function inope_policy_review_select_query($node, $account) {
   ))->fetchAll();
 
   return $policy_review_notes;
+}
+
+/**
+ * Select query for the current node policy review notes.
+ *
+ * Query the policy review table for ALL records related to the current
+ * node and are from the current user REGARDLESS of vid timestamp or status.
+ */
+function inope_policy_review_select_query_all($node, $account) {
+
+  // Select query to get all records with a note_sumbitted >= vid_timestamp.
+  $policy_review_notes = db_query("
+  SELECT * FROM {policy_review} WHERE nid = :nid AND uid = :uid ORDER BY 
+  note_submitted DESC", array(
+    ':nid' => $node->nid,
+    ':uid' => $account->uid,
+  ))->fetchAll();
+
+  return $policy_review_notes;
+}
+
+/**
+ * Select query for the a single policy review note.
+ */
+function inope_policy_review_select_query_one($policy_review_id) {
+
+  // Select query to get a single record based on the primary key.
+  $policy_review_note = db_query("
+  SELECT * FROM {policy_review} WHERE policy_review_id = :policy_review_id", array(
+    ':policy_review_id' => $policy_review_id,
+  ))->fetchObject();
+
+  return $policy_review_note;
 }
 
 /**
@@ -269,17 +418,101 @@ function inope_policy_review_insert_query($node, $account, $text, $status) {
  * Currently this funtion is not called anywhere but it is avaliable for future
  * use.
  */
-function inope_policy_review_update_query($node, $account, $text, $timestamp) {
+function inope_policy_review_update_query(&$form_state) {
+  global $user;
+  $account = $user;
+
+  $note_status = $form_state['values']['inope_policy_review_status_radio'];
+
+  // If the user changed note status to approved, remove the old change request.
+  if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
+    $form_state['values']['inope_policy_review_changes_requested_textarea'] = '';
+  }
 
   // Run an update query on the policy review table to change the note.
   $updated_records = db_update('policy_review')
     ->fields(array(
-      'note' => $text,
+      'note_status' => $note_status,
+      'note' => $form_state['values']['inope_policy_review_changes_requested_textarea'],
     ))
-    ->condition('nid', $node->nid, '=')
-    ->condition('uid', $account->uid, '=')
-    ->condition('note_submitted', $timestamp, '=')
+    ->condition('policy_review_id', $form_state['values']['inope_policy_review_hidden_policy_review_id'], '=')
     ->execute();
 
   return $updated_records;
+}
+
+/**
+ * Build a table to display the data for the current node.
+ */
+function inope_policy_review_table($node, $account) {
+  // Set table headers.
+  $header = array(
+    'Policy Review ID' => array(
+      'data' => t('Policy Review ID'),
+      'field' => 'policy_review_id',
+    ),
+    'Version' => array(
+      'data' => t('Version'),
+      'field' => 'vid',
+    ),
+    'Date' => array(
+      'data' => t('Date'),
+      'field' => 'note_submitted',
+      'sort' => 'desc',
+    ),
+    'Request Status' => array(
+      'data' => t('Request Status'),
+      'field' => 'note_status',
+    ),
+    'Note' => array(
+      'data' => t('Note'),
+      'field' => 'note',
+    ),
+    '',
+  );
+
+  // Create $rows variable.
+  $rows = array();
+
+  // Change note status from a binary number to text for display to the user.
+  $note_status_text = array('Approved', 'Change Requested');
+
+  // Build a dynamic 'TableSort' query that uses the GET parameters to order the
+  // table.  The TableSort is key, without it you need another way to change
+  // your query based on the GET parameters passed.
+  $query = db_select('policy_review', 'pr')
+    ->fields('pr')
+    ->condition('uid', $account->uid, '=')
+    ->condition('nid', $node->nid, '=')
+    ->extend('TableSort')
+    ->orderByHeader($header);
+
+  // Execute the query and store the results in a variable.
+  $results = $query->execute();
+
+  // Process the results.
+  foreach ($results as $result) {
+    $rows[] = array(
+      array(
+        'data' => l($result->policy_review_id,
+                    'node/' . $node->nid . '/review',
+                    array('query' => array('id' => $result->policy_review_id))),
+      ),
+      array('data' => $result->vid),
+      array('data' => format_date($result->note_submitted, 'short')),
+      array('data' => $note_status_text[$result->note_status]),
+      array('data' => $result->note),
+      array(
+        'data' => l(t('Edit'),
+                    'node/' . $node->nid . '/review',
+                    array('query' => array('id' => $result->policy_review_id))),
+      ),
+    );
+  }
+
+  // Have the theme_table() function build your new table.
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+  ));
 }
