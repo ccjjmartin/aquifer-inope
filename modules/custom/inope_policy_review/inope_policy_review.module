@@ -468,7 +468,6 @@ function inope_policy_review_table($node, $account) {
       'data' => t('Note'),
       'field' => 'note',
     ),
-    '',
   );
 
   // Create $rows variable.
