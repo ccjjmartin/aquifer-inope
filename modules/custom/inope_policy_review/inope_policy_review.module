@@ -120,14 +120,32 @@ function inope_policy_review_page($node) {
   // Retreive all notes related to this node and account.
   $results = inope_policy_review_select_query($node, $account);
 
-  // If the active user has previously submitted something only display a
-  // message.
-  if (empty($results)) {
-    // If no results build a blank form.
+  // If the active user does NOT have administrator role and has NOT previously
+  // submitted something.
+  if (empty($results) && !user_access('administer inope policy review')) {
+    // Build a blank form.
     $build['inope_policy_review_form']
       = drupal_get_form('inope_policy_review_form', $node);
   }
+  // If the active user does HAVE the administrator role and has NOT previously
+  // submitted something.
+  elseif (empty($results) && user_access('administer inope policy review')) {
+
+    // Build a blank form AND dislay notes from other users.
+    $build['inope_policy_review_form']
+      = drupal_get_form('inope_policy_review_form', $node);
+
+    // Build a table of results from other users.
+    $build['table'] = array(
+      '#type' => 'markup',
+      '#markup' => inope_policy_review_table($node, $account),
+    );
+  }
+  // Now we must have results so no need to check for it.
+  // We now check if the URL contains GET parameters for a specific policy
+  // review note starting with the NOT set state.
   elseif ($policy_review_id == NULL) {
+
     // If results and no id requested show message and table of results.
     $build['message'] = array(
       '#type' => 'markup',
@@ -139,12 +157,15 @@ function inope_policy_review_page($node) {
       '#markup' => inope_policy_review_table($node, $account),
     );
   }
+  // Now if policy review id IS set then build a form with that information.
   elseif (!empty($policy_review_id)) {
+
     // Build a form with the requested policy_review_id.
     $build['inope_policy_review_form']
       = drupal_get_form('inope_policy_review_form', $node, $policy_review_id);
   }
   else {
+
     // Page state not recognized.
     $build['message'] = array(
       '#type' => 'markup',
