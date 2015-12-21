@@ -158,17 +158,16 @@ function inope_policy_review_page($node) {
   // If the active user does NOT have administrator role and has NOT previously
   // submitted something.
   if (empty($results) && !user_access('administer inope policy review')) {
-    // Build a blank form.
-    $build['inope_policy_review_form']
-      = drupal_get_form('inope_policy_review_form', $node);
+    // Call the blank form function which retrieves from cache if possible.
+    $build['inope_policy_review_form'] = inope_policy_review_blank_form($account, $node);
   }
   // If the active user does HAVE the administrator role and has NOT previously
   // submitted something.
   elseif (empty($results) && user_access('administer inope policy review')) {
-
     // Build a blank form AND dislay notes from other users.
-    $build['inope_policy_review_form']
-      = drupal_get_form('inope_policy_review_form', $node);
+    
+    // Call the blank form function which retrieves from cache if possible.
+    $build['inope_policy_review_form'] = inope_policy_review_blank_form($account, $node);
 
     // Build a table of results from other users.
     $build['table'] = array(
@@ -207,6 +206,33 @@ function inope_policy_review_page($node) {
       '#markup' => t('There seems to be a problem please contact your site
         administrator.'),
     );
+  }
+  
+  return $build;
+}
+
+/**
+ * Return blank form from cache if possible.
+ */
+function inope_policy_review_blank_form($account, $node) {
+
+  $build = array();
+
+  // We only need to render a blank form once per user per node per version.
+  if ($cache = cache_get('inope_policy_review_' . $account->uid . '_' . $node->nid . '_' . $node->vid . '_blankform')) {
+    $build['inope_policy_review_form'] = $cache->data;
+  }
+  else {
+  // Build a blank form.
+  $inope_policy_form = drupal_get_form('inope_policy_review_form', $node);
+
+  // Build the form element.
+  $build['inope_policy_review_form'] = array(
+    '#type' => 'markup',
+    '#markup' => drupal_render($inope_policy_form),
+  );
+  // Store it in the cache.
+  cache_set('inope_policy_review_' . $account->uid . '_' . $node->nid . '_' . $node->vid . '_blankform', $build['inope_policy_review_form'],'cache');
   }
 
   return $build;
