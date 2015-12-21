@@ -82,6 +82,7 @@ function feature_inope_policy_strongarm() {
   $strongarm->value = array(
     0 => 'status',
     1 => 'promote',
+    2 => 'revision',
   );
   $export['node_options_inope_policy'] = $strongarm;
 

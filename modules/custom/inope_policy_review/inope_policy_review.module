@@ -16,7 +16,8 @@ function inope_policy_review_menu() {
     'description' => 'Review of policy nodes.',
     'page callback' => 'inope_policy_review_page',
     'page arguments' => array(1),
-    'access arguments' => array('view inope policy review'),
+    'access callback' => 'inope_policy_review_access_callback',
+    'access arguments' => array(1, 'view inope policy review'),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -70,6 +71,36 @@ function inope_policy_review_tab_title_callback($node) {
   }
 
   return $title;
+}
+
+/**
+ * Check access for the policy review tab also choose when to display.
+ *
+ * @param object $node
+ *   Object representing the current node passed from hook_menu.
+ * @param string $permission
+ *   String representing the allowed permission passed from hook_menu.
+ *
+ * @return bool
+ *   Boolean (TRUE or FALSE) representing access to the policy review page.
+ */
+function inope_policy_review_access_callback($node, $permission) {
+
+  // Check that we are only adding the tab to the inope policy node type.
+  // This check must happen first as when we return false the rest of the
+  // function does not continue to execute.
+  if ($node->type != 'inope_policy') {
+    return FALSE;
+  }
+
+  // Check that we have the permission 'view inope policy review' set in
+  // hook_menu().
+  if (user_access($permission)) {
+    return TRUE;
+  }
+
+  // If neither of the first were true default to access denied.
+  return FALSE;
 }
 
 /**
@@ -364,13 +395,13 @@ function inope_policy_review_select_query($node, $account) {
   // Select query to get the latest node revision timestamp.
   $node_revision = inope_policy_review_select_query_timestamp($node);
 
-  // Select query to get all records with a note_sumbitted >= vid_timestamp.
+  // Select query to get all records with a note_sumbitted >= node->changed.
   $policy_review_notes = db_query("
   SELECT * FROM {policy_review} WHERE nid = :nid AND uid = :uid AND 
-  note_submitted >= :vid_timestamp ORDER BY note_submitted DESC", array(
+  note_submitted >= :timestamp ORDER BY note_submitted DESC", array(
     ':nid' => $node->nid,
     ':uid' => $account->uid,
-    ':vid_timestamp' => $node_revision->timestamp,
+    ':timestamp' => $node->changed,
   ))->fetchAll();
 
   return $policy_review_notes;
