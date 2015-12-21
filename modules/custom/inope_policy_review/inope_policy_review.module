@@ -28,7 +28,7 @@ function inope_policy_review_menu() {
     'access arguments' => array('administer inope policy review'),
     'type' => MENU_NORMAL_ITEM,
   );
-  
+
   $items['admin/inope/report'] = array(
     'title' => 'Policy Review Notes Report',
     'description' => 'Review of all policy nodes.',
@@ -70,7 +70,7 @@ function inope_policy_review_tab_title_callback($node) {
 
   global $user;
   $account = $user;
-  
+
   $title = &drupal_static(__FUNCTION__);
 
   if (!isset($title)) {
@@ -528,7 +528,7 @@ function inope_policy_review_insert_query($node, $account, $text, $status) {
       ))
       ->execute();
   }
-  
+
   // Clear the cache on the admin display so admin's will see new data.
   cache_clear_all('inope_policy_review_admin_table_', 'cache', TRUE);
 
@@ -576,17 +576,17 @@ function inope_policy_review_update_query(&$form_state) {
  * the number of records and one for the different sort orders.
  *
  * This report will not vary by admin user.
- * 
+ *
  * NOTE: the cache_set() for records is handled by the table build handler.
  */
 function inope_policy_review_admin_table($node, $account, $report_page = FALSE) {
 
-  // Default sort and order
+  // Defaults for sort and order.
   $sort = 'desc';
   $order = 'Date';
 
-   // Get the parameters passed in the url and if needed change default sort 
-   // order.
+  // Get the parameters passed in the url and if needed change default sort
+  // order.
   $get_params = drupal_get_query_parameters();
   if (!empty($get_params)) {
     $sort = $get_params['sort'];
@@ -601,7 +601,7 @@ function inope_policy_review_admin_table($node, $account, $report_page = FALSE) 
   else {
     // Build the table.
     $table = inope_policy_review_table($node, $account, $report_page);
-    cache_set('inope_policy_review_admin_table_'  . $sort . '_' . $order, $table, 'cache');
+    cache_set('inope_policy_review_admin_table_' . $sort . '_' . $order, $table, 'cache');
     return $table;
   }
 }
