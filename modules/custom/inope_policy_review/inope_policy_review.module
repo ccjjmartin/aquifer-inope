@@ -20,15 +20,36 @@ function inope_policy_review_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/reports/inope'] = array(
-    'title' => 'iNope Report',
+  $items['admin/inope'] = array(
+    'title' => 'iNope',
+    'description' => 'Admin menu tab for sublinks.',
+    'page callback' => 'inope_policy_review_admin_links_page',
+    'access arguments' => array('administer inope policy review'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+  $items['admin/inope/report'] = array(
+    'title' => 'Policy Review Notes Report',
     'description' => 'Review of all policy nodes.',
     'page callback' => 'inope_policy_review_report_page',
     'access arguments' => array('administer inope policy review'),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_NORMAL_ITEM,
   );
 
   return $items;
+}
+
+/**
+ * Build a page with admin links.
+ */
+function inope_policy_review_admin_links_page() {
+  $build = array(
+    'header_text' => array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . l(t('Policy Review Notes Report'), 'admin/inope/report') . '</p>',
+    ),
+  );
+  return $build;
 }
 
 /**
