@@ -70,25 +70,29 @@ function inope_policy_review_tab_title_callback($node) {
 
   global $user;
   $account = $user;
+  
+  $title = &drupal_static(__FUNCTION__);
 
-  // Create the string to be used as the tab title.
-  $title = t('Review of @node_title', array('@node_title' => $node->title));
+  if (!isset($title)) {
+    // Create the string to be used as the tab title.
+    $title = t('Review of @node_title', array('@node_title' => $node->title));
 
-  // Retreive all notes related to this node, account, and vid_timestamp.
-  $results = inope_policy_review_select_query_all($node, $account);
-  $node_revision = inope_policy_review_select_query_timestamp($node);
+    // Retreive all notes related to this node, account, and vid_timestamp.
+    $results = inope_policy_review_select_query_all($node, $account);
+    $node_revision = inope_policy_review_select_query_timestamp($node);
 
-  // Change the title based off last submission.
-  if (empty($results)) {
-    $title .= ' (NEW)';
-    drupal_set_message(t('This is a new policy, please provide feedback.'), 'status', $repeat = FALSE);
-  }
-  elseif ($results[0]->note_submitted < $node_revision->timestamp) {
-    $title .= ' (UPDATED)';
-    drupal_set_message(t('This policy has been updated, please provide feedback.'), 'status', $repeat = FALSE);
-  }
-  else {
-    // Return the normal title without changes.
+    // Change the title based off last submission.
+    if (empty($results)) {
+      $title .= ' (NEW)';
+      drupal_set_message(t('This is a new policy, please provide feedback.'), 'status', $repeat = FALSE);
+    }
+    elseif ($results[0]->note_submitted < $node_revision->timestamp) {
+      $title .= ' (UPDATED)';
+      drupal_set_message(t('This policy has been updated, please provide feedback.'), 'status', $repeat = FALSE);
+    }
+    else {
+      // Return the normal title without changes.
+    }
   }
 
   return $title;
