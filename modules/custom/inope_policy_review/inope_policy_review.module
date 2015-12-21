@@ -202,9 +202,7 @@ function inope_policy_review_form($form, &$form_state, $node, $policy_review_id 
   // Store the policy_review_id for future use, not displayed to the user.
   $form['inope_policy_review_hidden_policy_review_id'] = array(
     '#type' => 'hidden',
-    '#title' => 'Policy Review ID',
     '#value' => $policy_review_id_default_value,
-    '#element_validate' => array('element_validate_integer'),
   );
 
   // Store the nid for future use, not displayed to the user.
@@ -254,8 +252,8 @@ function inope_policy_review_form_submit($form, &$form_state) {
   // PART 1 - Load objects from which their properties will be displayed.
   global $user;
   $account = $user;
-  
-  // Validate handler verifies this value is integer before node_load is 
+
+  // Validate handler verifies this value is integer before node_load is
   // attempted.
   $node = node_load($form_state['values']['inope_policy_review_hidden_nid']);
   $text = check_plain($form_state['values']['inope_policy_review_changes_requested_textarea']);
@@ -315,12 +313,12 @@ function inope_policy_review_form_submit($form, &$form_state) {
       }
     }
     // PART 5 - Catch errors.
-    else { 
+    else {
       drupal_set_message(t('Form state not recognized, please contact your
         administrator'));
 
-      // Send the user back to the main review page for the node.  This will rebuild
-      // the form and hopefully correct any errors the user encountered.
+      // Send the user back to the main review page for the node.  This will
+      // rebuild the form and hopefully correct any errors the user encountered.
       drupal_goto('node/' . $node->nid . '/review');
     }
   }
