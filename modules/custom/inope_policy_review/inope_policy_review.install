@@ -1,0 +1,113 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the inope_policy_review module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function inope_policy_review_schema() {
+  $schema['policy_review'] = array(
+    'description' => 'The table for policy reviews.',
+    'fields' => array(
+      'policy_review_id' => array(
+        'description' => 'The primary identifier for a policy review note.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'description' => 'The current node vid.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'nid' => array(
+        'description' => 'The current node nid.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'uid' => array(
+        'description' => 'The current user uid.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'note_status' => array(
+        'description' => 'Boolean indicating the note status.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'note_submitted' => array(
+        'description' => 'The Unix timestamp when the note was submitted.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'note' => array(
+        'description' => 'A brief policy review note.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'medium',
+        'translatable' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'note_active' => array(
+        'nid',
+        'uid',
+        'note_submitted',
+      ),
+    ),
+    'foreign keys' => array(
+      'node' => array(
+        'table' => 'node',
+        'columns' => array('nid' => 'nid'),
+      ),
+      'users' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+    'primary key' => array('policy_review_id'),
+  );
+  return $schema;
+}
+
+/**
+ * Install the schema.
+ *
+ * Note that we only need to do this while upgrading as drupal_install_schema
+ * is called by default in hook_install().
+ */
+function inope_policy_review_update_7100() {
+  // Install the schema if the table does not exist.  This prevents the install
+  // hook from running twice.
+  if (db_table_exists('policy_review') == FALSE) {
+    drupal_install_schema('inope_policy_review');
+  }
+}
+
+/**
+ * Update the database policy_review table note_status field boolean value.
+ */
+function inope_policy_review_update_7101() {
+  // To make the note_status field match the status radio button value we need
+  // to switch the boolean value.
+  if (db_table_exists('policy_review') == TRUE) {
+    db_update('policy_review')
+      ->expression('note_status', 'NOT note_status')
+      ->execute();
+  }
+}
+
+/**
+ * Revert feature_inope_policy for new permission.
+ */
+function inope_policy_review_update_7102() {
+  features_revert_module('feature_inope_policy');
+}
