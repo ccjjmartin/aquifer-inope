@@ -48,28 +48,27 @@ function inope_policy_review_tab_title_callback($node) {
  *
  * @param object $node
  *   Object representing the current node passed from hook_menu.
- *
  * @param string $permission
  *   String representing the allowed permission passed from hook_menu.
- * 
- * @return boolean
+ *
+ * @return bool
  *   Boolean (TRUE or FALSE) representing access to the policy review page.
  */
 function inope_policy_review_access_callback($node, $permission) {
-  
+
   // Check that we are only adding the tab to the inope policy node type.
   // This check must happen first as when we return false the rest of the
   // function does not continue to execute.
   if ($node->type != 'inope_policy') {
     return FALSE;
   }
-  
+
   // Check that we have the permission 'view inope policy review' set in
   // hook_menu().
   if (user_access($permission)) {
     return TRUE;
   }
-  
+
   // If neither of the first were true default to access denied.
   return FALSE;
 }
