@@ -222,7 +222,7 @@ function inope_policy_review_report_page() {
 
   $build['table'] = array(
     '#type' => 'markup',
-    '#markup' => inope_policy_review_table(NULL, NULL, $report_page),
+    '#markup' => inope_policy_review_admin_table(NULL, NULL, $report_page),
   );
 
   return $build;
@@ -528,6 +528,9 @@ function inope_policy_review_insert_query($node, $account, $text, $status) {
       ))
       ->execute();
   }
+  
+  // Clear the cache on the admin display so admin's will see new data.
+  cache_clear_all('inope_policy_review_admin_table_', 'cache', TRUE);
 
   return $policy_review_id;
 }
@@ -556,7 +559,51 @@ function inope_policy_review_update_query(&$form_state) {
     ->condition('policy_review_id', $form_state['values']['inope_policy_review_hidden_policy_review_id'], '=')
     ->execute();
 
+  // Clear the cache on the admin display so admin's will see new data.
+  cache_clear_all('inope_policy_review_admin_table_', 'cache', TRUE);
+
   return $updated_records;
+}
+
+/**
+ * Retrieve admin table from cache if possible.
+ *
+ * As the administrative table is the table that could get excessivly large
+ * that is the table we will cache.
+ *
+ * We need to focus on the different sort orders as well as the number of
+ * records in the table.  As such we will use two cache variations.  One for
+ * the number of records and one for the different sort orders.
+ *
+ * This report will not vary by admin user.
+ * 
+ * NOTE: the cache_set() for records is handled by the table build handler.
+ */
+function inope_policy_review_admin_table($node, $account, $report_page = FALSE) {
+
+  // Default sort and order
+  $sort = 'desc';
+  $order = 'Date';
+
+   // Get the parameters passed in the url and if needed change default sort 
+   // order.
+  $get_params = drupal_get_query_parameters();
+  if (!empty($get_params)) {
+    $sort = $get_params['sort'];
+    $order = $get_params['order'];
+  }
+
+  // Check if the tablesort has already been cached.
+  if ($cache_table = cache_get('inope_policy_review_admin_table_' . $sort . '_' . $order)) {
+    $table = $cache_table->data;
+    return $table;
+  }
+  else {
+    // Build the table.
+    $table = inope_policy_review_table($node, $account, $report_page);
+    cache_set('inope_policy_review_admin_table_'  . $sort . '_' . $order, $table, 'cache');
+    return $table;
+  }
 }
 
 /**
