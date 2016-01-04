@@ -16,7 +16,8 @@ function inope_policy_review_menu() {
     'description' => 'Review of policy nodes.',
     'page callback' => 'inope_policy_review_page',
     'page arguments' => array(1),
-    'access arguments' => array('view inope policy review'),
+    'access callback' => 'inope_policy_review_access_callback',
+    'access arguments' => array(1, 'view inope policy review'),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -43,6 +44,36 @@ function inope_policy_review_tab_title_callback($node) {
 }
 
 /**
+ * Check access for the policy review tab also choose when to display.
+ *
+ * @param object $node
+ *   Object representing the current node passed from hook_menu.
+ * @param string $permission
+ *   String representing the allowed permission passed from hook_menu.
+ *
+ * @return bool
+ *   Boolean (TRUE or FALSE) representing access to the policy review page.
+ */
+function inope_policy_review_access_callback($node, $permission) {
+
+  // Check that we are only adding the tab to the inope policy node type.
+  // This check must happen first as when we return false the rest of the
+  // function does not continue to execute.
+  if ($node->type != 'inope_policy') {
+    return FALSE;
+  }
+
+  // Check that we have the permission 'view inope policy review' set in
+  // hook_menu().
+  if (user_access($permission)) {
+    return TRUE;
+  }
+
+  // If neither of the first were true default to access denied.
+  return FALSE;
+}
+
+/**
  * Creates the iNope policy review page.
  *
  * The page will call drupal_get_form() to load the inope_policy_review_form.
@@ -55,10 +86,28 @@ function inope_policy_review_tab_title_callback($node) {
  *   policy nodes.
  */
 function inope_policy_review_page($node) {
-  // Create a build array to be displayed on the page.
-  $build = array(
-    'inope_policy_review_form' => drupal_get_form('inope_policy_review_form', $node),
-  );
+  global $user;
+  $account = $user;
+  $build = array();
+
+  // Retreive all notes related to this node and account.
+  $results = inope_policy_review_select_query($node, $account);
+
+  // If the active user has previously submitted something only display a
+  // message.
+  if (!empty($results)) {
+    $build['message'] = array(
+      '#type' => 'markup',
+      '#markup' => t('Thank you for your feedback!
+      Please check back often for additional review.'),
+    );
+  }
+  else {
+    // If no results build a blank form.
+    $build['inope_policy_review_form']
+      = drupal_get_form('inope_policy_review_form', $node);
+  }
+
   return $build;
 }
 
@@ -79,6 +128,8 @@ function inope_policy_review_permission() {
  */
 function inope_policy_review_form($form, &$form_state, $node) {
   global $user;
+
+  $account = $user;
 
   // Create radio button options (approved or changes requested).
   $status = array(
@@ -130,7 +181,7 @@ function inope_policy_review_form($form, &$form_state, $node) {
   // Store the uid for future use, not displayed to the user.
   $form['inope_policy_review_hidden_uid'] = array(
     '#type' => 'hidden',
-    '#value' => $user->uid,
+    '#value' => $account->uid,
   );
 
   // Create the submit button.
@@ -149,31 +200,111 @@ function inope_policy_review_form_submit($form, &$form_state) {
   // Load objects from which their properties will be displayed.
   $account = user_load($form_state['values']['inope_policy_review_hidden_uid']);
   $node = node_load($form_state['values']['inope_policy_review_hidden_nid']);
+  $text = check_plain($form_state['values']['inope_policy_review_changes_requested_textarea']);
 
   // If 'I have reviewed this policy and approved it for use' is selected.
   if ($form_state['values']['inope_policy_review_status_radio'] == 0) {
-    drupal_set_message(t('Policy approved for use'));
-    // TODO: put this into the database.
+
+    $policy_review_id = inope_policy_review_insert_query($node, $account, '', 1);
+
+    if ($policy_review_id != 0) {
+      // Thank the user for their approval.
+      drupal_set_message(
+        t('Thank you @username for approving the policy', array(
+          '@username' => $account->name,
+        )));
+    }
   }
   // If 'I have reviewed this policy and would like to see changes' is selected.
   elseif ($form_state['values']['inope_policy_review_status_radio'] == 1) {
-    drupal_set_message(
-      t('User : @userid : @username submitted the following change request:', array(
-        '@userid' => $account->uid,
-        '@username' => $account->name,
-      )));
 
-    drupal_set_message($form_state['values']['inope_policy_review_changes_requested_textarea']);
+    $policy_review_id = inope_policy_review_insert_query($node, $account, $text, 0);
 
-    drupal_set_message(t('Node ID : @nodeid', array('@nodeid' => $node->nid)));
-    drupal_set_message(t('Node VID : @nodevid', array('@nodevid' => $node->vid)));
-    // TODO: put this into the database.
+    if ($policy_review_id != 0) {
+      // Thank the user for their request.
+      drupal_set_message(
+        t('Thank you @username for submitting the following change request:', array(
+          '@username' => $account->name,
+        )));
+      // Check_plain happened when this variable was declared.
+      drupal_set_message($text);
+    }
   }
   // If a bug is encountered.
   else {
     drupal_set_message(t('Form state not recognized'));
   }
+}
 
-  // Rebuild the form.
-  $form_state['rebuild'] = TRUE;
+/**
+ * Select query for the current node policy review notes.
+ *
+ * Query the policy review table for any records related to the current
+ * node, note status, and are from the current user.
+ */
+function inope_policy_review_select_query($node, $account) {
+
+  // Select query to get all records with a note_sumbitted >= node->changed.
+  $policy_review_notes = db_query("
+  SELECT * FROM {policy_review} WHERE nid = :nid AND uid = :uid AND 
+  note_submitted >= :timestamp ORDER BY note_submitted DESC", array(
+    ':nid' => $node->nid,
+    ':uid' => $account->uid,
+    ':timestamp' => $node->changed,
+  ))->fetchAll();
+
+  return $policy_review_notes;
+}
+
+/**
+ * Insert query to add a new policy review note or approve policy.
+ *
+ * Only insert the new row if it is substantially a new request meaning that
+ * some value other than the timestamp is different.
+ */
+function inope_policy_review_insert_query($node, $account, $text, $status) {
+
+  $results = inope_policy_review_select_query($node, $account);
+
+  // If the entry already exists don't duplicate it.
+  if (!empty($results)) {
+    drupal_set_message(t('You have previously submitted a response.'));
+    $policy_review_id = 0;
+  }
+  else {
+    // Run an insert query on the policy review table for the new note.
+    $policy_review_id = db_insert('policy_review')
+      ->fields(array(
+        'nid' => $node->nid,
+        'vid' => $node->vid,
+        'uid' => $account->uid,
+        'note_status' => $status,
+        'note_submitted' => time(),
+        'note' => $text,
+      ))
+      ->execute();
+  }
+
+  return $policy_review_id;
+}
+
+/**
+ * Update query if the user wants to update a record.
+ *
+ * Currently this funtion is not called anywhere but it is avaliable for future
+ * use.
+ */
+function inope_policy_review_update_query($node, $account, $text, $timestamp) {
+
+  // Run an update query on the policy review table to change the note.
+  $updated_records = db_update('policy_review')
+    ->fields(array(
+      'note' => $text,
+    ))
+    ->condition('nid', $node->nid, '=')
+    ->condition('uid', $account->uid, '=')
+    ->condition('note_submitted', $timestamp, '=')
+    ->execute();
+
+  return $updated_records;
 }
