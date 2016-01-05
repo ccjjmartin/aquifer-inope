@@ -13,6 +13,7 @@ features[features_api][] = api:2
 features[field_base][] = body
 features[field_instance][] = node-inope_policy-body
 features[node][] = inope_policy
+features[user_permission][] = administer inope policy review
 features[user_permission][] = create inope_policy content
 features[user_permission][] = delete any inope_policy content
 features[user_permission][] = delete own inope_policy content
