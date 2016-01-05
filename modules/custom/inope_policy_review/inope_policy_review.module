@@ -654,6 +654,14 @@ function inope_policy_review_table($node, $account, $report_page = FALSE) {
       ),
     ) + $header;
   }
+  
+  // Add edit header.
+    $header = $header + array(
+      'Edit' => array(
+        'data' => t('Action'),
+        'field' => 'pr.edit',
+      ),
+    );
 
   // Create $rows variable.
   $rows = array();
@@ -685,6 +693,7 @@ function inope_policy_review_table($node, $account, $report_page = FALSE) {
     $query->join('users', 'u', 'pr.uid = u.uid');
     $query->fields('pr');
     $query->fields('u', array('uid', 'name'));
+    $query->addField('pr', 'uid', 'edit');
     $query->condition('pr.nid', $node->nid, '=');
     $query->extend('TableSort')->orderByHeader($header);
     $query->execute();
