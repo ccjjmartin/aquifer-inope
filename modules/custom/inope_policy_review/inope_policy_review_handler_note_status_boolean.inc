@@ -10,18 +10,21 @@
  * Allows for display of approved / changes requested.
  *
  * Definition terms:
- *   - output formats: An array where the first entry is displayed on boolean true
- *      and the second is displayed on boolean false. An example for sticky is:
- *      @code
- *      'output formats' => array(
- *        'sticky' => array(t('Sticky'), ''),
- *      ),
- *      @endcode
+ *   - output formats: An array where the first entry is displayed on boolean
+ *      true and the second is displayed on boolean false.
  *
  * @ingroup inope_policy_review
  */
 class inope_policy_review_handler_note_status_boolean extends views_handler_field_boolean {
-  function option_definition() {
+  /**
+   * Override the default boolen field handlers default options.
+   *
+   * We are changing the default option to approved-requested created in init.
+   *
+   * @return array $options
+   *   Sets the default options to be used in the init method.
+   */
+  protected function option_definition() {
     $options = parent::option_definition();
     $options['type'] = array('default' => 'approved-requested');
     $options['type_custom_true'] = array('default' => 'Approved', 'translatable' => TRUE);
@@ -31,7 +34,19 @@ class inope_policy_review_handler_note_status_boolean extends views_handler_fiel
     return $options;
   }
 
-  function init(&$view, &$options) {
+  /**
+   * Override the init method (constructor) of the parent class.
+   *
+   * We are adding the approved-requested option.
+   *
+   * @param array $view
+   *    Todo - passed by reference.
+   * @param array $options
+   *    Todo - passed by reference.
+   *
+   * @todo research the parameters passed and update documentation.
+   */
+  protected function init(&$view, &$options) {
     parent::init($view, $options);
 
     $default_formats = array(
@@ -48,72 +63,4 @@ class inope_policy_review_handler_note_status_boolean extends views_handler_fiel
     $this->formats = array_merge($default_formats, $output_formats, $custom_format);
   }
 
-  /**
-
-
-  function access() {
-    return user_access('view revisions') || user_access('administer nodes');
-  }
-  
-  function options_form(&$form, &$form_state) {
-    foreach ($this->formats as $key => $item) {
-      $options[$key] = implode('/', $item);
-    }
-
-    $form['type'] = array(
-      '#type' => 'select',
-      '#title' => t('Output format'),
-      '#options' => $options,
-      '#default_value' => $this->options['type'],
-    );
-
-    $form['type_custom_true'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Custom output for TRUE'),
-      '#default_value' => $this->options['type_custom_true'],
-      '#states' => array(
-        'visible' => array(
-          'select[name="options[type]"]' => array('value' => 'custom'),
-        ),
-      ),
-    );
-
-    $form['type_custom_false'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Custom output for FALSE'),
-      '#default_value' => $this->options['type_custom_false'],
-      '#states' => array(
-        'visible' => array(
-          'select[name="options[type]"]' => array('value' => 'custom'),
-        ),
-      ),
-    );
-
-    $form['not'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Reverse'),
-      '#description' => t('If checked, true will be displayed as false.'),
-      '#default_value' => $this->options['not'],
-    );
-    parent::options_form($form, $form_state);
-  }
-
-  function render($values) {
-    $value = $this->get_value($values);
-    if (!empty($this->options['not'])) {
-      $value = !$value;
-    }
-
-    if ($this->options['type'] == 'custom') {
-      return $value ? filter_xss_admin($this->options['type_custom_true']) : filter_xss_admin($this->options['type_custom_false']);
-    }
-    else if (isset($this->formats[$this->options['type']])) {
-      return $value ? $this->formats[$this->options['type']][0] : $this->formats[$this->options['type']][1];
-    }
-    else {
-      return $value ? $this->formats['yes-no'][0] : $this->formats['yes-no'][1];
-    }
-  }
-   * 
-   */
 }

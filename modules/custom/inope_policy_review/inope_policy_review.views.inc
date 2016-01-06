@@ -4,49 +4,26 @@
  * The iNope Policy Review views include file.
  */
 
+/**
+ * Implements hook_views_data().
+ */
 function inope_policy_review_views_data() {
   // ----------------------------------------------------------------
-  // iNope Policy Review -- basic table information.
- 
+  // Define basic table information.
+  // ----------------------------------------------------------------
   // Define the base group of this table.
   $data['policy_review']['table']['group']  = t('iNope Policy Review');
- 
-  // Advertise this table as a possible base table
+
+  // Advertise this table as a possible base table.
   $data['policy_review']['table']['base'] = array(
     'field' => 'policy_review_id',
     'title' => t('iNope Policy Review'),
-    //'weight' => -10,
-    //'access query tag' => '',
-    //'defaults' => array(
-    //  'field' => 'title',
-    //),
   );
 
-  /**
-  // For other base tables, explain how we join
-  $data['node']['table']['join'] = array(
-    // this explains how the 'node' table (named in the line above)
-    // links toward the node_revision table.
-    'node_revision' => array(
-      'handler' => 'views_join', // this is actually optional
-      'left_table' => 'node_revision', // Because this is a direct link it could be left out.
-      'left_field' => 'nid',
-      'field' => 'nid',
-      // also supported:
-      // 'type' => 'INNER',
-      // 'extra' => array(array('field' => 'fieldname', 'value' => 'value', 'operator' => '='))
-      //   Unfortunately, you can't specify other tables here, but you can construct
-      //   alternative joins in the handlers that can do that.
-      // 'table' => 'the actual name of this table in the database',
-     ),
-  );
-   * 
-   */
- 
   // ----------------------------------------------------------------
-  // policy_review table -- fields
-
-  // Policy review submitted field.
+  // Define table fields.
+  // ----------------------------------------------------------------
+  // Create the policy review submitted views field.
   $data['policy_review']['note_submitted'] = array(
     'title' => t('Note Submitted'),
     'help' => t('Note was submitted on this date.'),
@@ -62,12 +39,12 @@ function inope_policy_review_views_data() {
     ),
   );
 
-  // Policy Review ID (Primary Key)
+  // Create the policy review id (primary key) views field.
   $data['policy_review']['policy_review_id'] = array(
-    // The item it appears as on the UI,
+    // The item it appears as on the UI.
     'title' => t('Policy Review ID'),
 
-    // The help that appears on the UI,
+    // The help that appears on the UI.
     'help' => t('The primary key.'),
 
     'field' => array(
@@ -81,13 +58,13 @@ function inope_policy_review_views_data() {
       'handler' => 'views_handler_sort',
     ),
   );
-  
-  // Policy Review NID
+
+  // Create the policy review nid views field.
   $data['policy_review']['nid'] = array(
-    // The item it appears as on the UI,
+    // The item it appears as on the UI.
     'title' => t('Policy Review NID'),
 
-    // The help that appears on the UI,
+    // The help that appears on the UI.
     'help' => t('The nid that a policy review note is attached to.'),
 
     'field' => array(
@@ -100,25 +77,28 @@ function inope_policy_review_views_data() {
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
-    
-    // Add the relationship to the node table
+
+    // Add the relationship to the node table.
     'relationship' => array(
-      'base' => 'node', // The name of the table to join with.
-      'base field' => 'nid', // The name of the field on the joined table.
-      // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
+      // The name of the table to join with.
+      'base' => 'node',
+
+      // The name of the field on the joined table.
+      'base field' => 'nid',
+
       'handler' => 'views_handler_relationship',
       'label' => t('NID'),
       'title' => t('NID'),
       'help' => t('This relationship joins the node table and the policy review table'),
     ),
   );
-  
-  // Policy Review UID
+
+  // Create the policy review uid views field.
   $data['policy_review']['uid'] = array(
-    // The item it appears as on the UI,
+    // The item it appears as on the UI.
     'title' => t('Policy Review UID'),
 
-    // The help that appears on the UI,
+    // The help that appears on the UI.
     'help' => t('The uid that a policy review note is attached to.'),
 
     'field' => array(
@@ -131,25 +111,28 @@ function inope_policy_review_views_data() {
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
-    
-    // Add the relationship to the node table
+
+    // Add the relationship to the node table.
     'relationship' => array(
-      'base' => 'users', // The name of the table to join with.
-      'base field' => 'uid', // The name of the field on the joined table.
-      // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
+      // The name of the table to join with.
+      'base' => 'users',
+
+      // The name of the field on the joined table.
+      'base field' => 'uid',
+
       'handler' => 'views_handler_relationship',
       'label' => t('UID'),
       'title' => t('UID'),
       'help' => t('This relationship joins the users table and the policy review table'),
     ),
   );
-  
-    // Policy Review UID
+
+  // Create the policy review vid views field.
   $data['policy_review']['vid'] = array(
-    // The item it appears as on the UI,
+    // The item it appears as on the UI.
     'title' => t('Policy Review VID'),
 
-    // The help that appears on the UI,
+    // The help that appears on the UI.
     'help' => t('The vid that a policy review note is attached to.'),
 
     'field' => array(
@@ -162,39 +145,43 @@ function inope_policy_review_views_data() {
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
-    
-    // Add the relationship to the node table
+
+    // Add the relationship to the node table.
     'relationship' => array(
-      'base' => 'node_revision', // The name of the table to join with.
-      'base field' => 'vid', // The name of the field on the joined table.
-      // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
+      // The name of the table to join with.
+      'base' => 'node_revision',
+
+      // The name of the field on the joined table.
+      'base field' => 'vid',
+
       'handler' => 'views_handler_relationship',
       'label' => t('VID'),
       'title' => t('VID'),
       'help' => t('This relationship joins the users table and the policy review table'),
     ),
   );
-  
-  // Policy Review Note
+
+  // Create the policy review note views field.
   $data['policy_review']['note'] = array(
-    // The item it appears as on the UI,
+    // The item it appears as on the UI.
     'title' => t('Policy Review Note'),
 
-    // The help that appears on the UI,
+    // The help that appears on the UI.
     'help' => t('The note comment for policy reviews.'),
 
-    // Field handler
     'field' => array(
       'handler' => 'views_handler_field',
-      'click sortable' => TRUE, // This is use by the table display plugin.
+      // This is used by the table display plugin.
+      'click sortable' => TRUE,
     ),
   );
-  
-  // Policy Review Note Status.
+
+  // Create the policy review note status views field.
   $data['policy_review']['note_status'] = array(
     'title' => t('Note Status'),
     'help' => t('Approved or requested change.'),
     'field' => array(
+      // CUSTOM: This is a custom handler implemented by this module.
       'handler' => 'inope_policy_review_handler_note_status_boolean',
       'click sortable' => TRUE,
     ),
@@ -204,7 +191,7 @@ function inope_policy_review_views_data() {
       'label' => t('Approved/Requested'),
       // This setting is used by the boolean filter handler, as possible option.
       'type' => 'Approved-Change Requested',
-      // use boolean_field = 1 instead of boolean_field <> 0 in WHERE statement.
+      // Use boolean_field = 1 instead of boolean_field <> 0 in WHERE statement.
       'use equal' => TRUE,
     ),
     'sort' => array(
@@ -214,4 +201,3 @@ function inope_policy_review_views_data() {
 
   return $data;
 }
-
