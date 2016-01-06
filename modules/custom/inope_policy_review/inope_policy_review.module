@@ -757,3 +757,14 @@ function inope_policy_review_table($node, $account, $report_page = FALSE) {
     'rows' => $rows,
   ));
 }
+
+/**
+ * Implements hook_views_api().
+ */
+function inope_policy_review_views_api() {
+  $path = drupal_get_path('module', 'inope_policy_review');
+  return array(
+    'api' => 3,
+    'path' => $path,
+  );
+}
