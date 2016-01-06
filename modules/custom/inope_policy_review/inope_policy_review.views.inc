@@ -62,6 +62,26 @@ function inope_policy_review_views_data() {
     ),
   );
 
+  // Policy Review ID (Primary Key)
+  $data['policy_review']['policy_review_id'] = array(
+    // The item it appears as on the UI,
+    'title' => t('Policy Review ID'),
+
+    // The help that appears on the UI,
+    'help' => t('The primary key.'),
+
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click_sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+  
   // Policy Review NID
   $data['policy_review']['nid'] = array(
     // The item it appears as on the UI,

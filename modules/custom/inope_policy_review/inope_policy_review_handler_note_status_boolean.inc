@@ -35,7 +35,7 @@ class inope_policy_review_handler_note_status_boolean extends views_handler_fiel
     parent::init($view, $options);
 
     $default_formats = array(
-      'approved-requested' => array(t('Approved'), t('Changes Requested')),
+      'approved-requested' => array(t('Changes Requested'), t('Approved')),
       'yes-no' => array(t('Yes'), t('No')),
       'true-false' => array(t('True'), t('False')),
       'on-off' => array(t('On'), t('Off')),

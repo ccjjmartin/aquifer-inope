@@ -111,3 +111,10 @@ function inope_policy_review_update_7101() {
 function inope_policy_review_update_7102() {
   features_revert_module('feature_inope_policy');
 }
+
+/**
+ * Revert feature_inope_policy for new views.
+ */
+function inope_policy_review_update_7103() {
+  features_revert_module('feature_inope_policy');
+}

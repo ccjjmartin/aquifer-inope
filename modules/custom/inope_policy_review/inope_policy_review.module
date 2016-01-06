@@ -29,14 +29,6 @@ function inope_policy_review_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['admin/inope/report'] = array(
-    'title' => 'Policy Review Notes Report',
-    'description' => 'Review of all policy nodes.',
-    'page callback' => 'inope_policy_review_report_page',
-    'access arguments' => array('administer inope policy review'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-
   return $items;
 }
 
@@ -173,7 +165,7 @@ function inope_policy_review_page($node) {
     // Build a table of results from other users.
     $build['table'] = array(
       '#type' => 'markup',
-      '#markup' => inope_policy_review_table($node, $account),
+      '#markup' => views_embed_view('policies', 'block_1'),
     );
   }
   // Now we must have results so no need to check for it.
@@ -189,7 +181,7 @@ function inope_policy_review_page($node) {
     );
     $build['table'] = array(
       '#type' => 'markup',
-      '#markup' => inope_policy_review_table($node, $account),
+      '#markup' => views_embed_view('policies', 'block_1'),
     );
   }
   // Now if policy review id IS set then build a form with that information.
@@ -208,22 +200,6 @@ function inope_policy_review_page($node) {
         administrator.'),
     );
   }
-
-  return $build;
-}
-
-/**
- * Creates the iNope policy review report page.
- */
-function inope_policy_review_report_page() {
-  $build = array();
-
-  $report_page = TRUE;
-
-  $build['table'] = array(
-    '#type' => 'markup',
-    '#markup' => inope_policy_review_admin_table(NULL, NULL, $report_page),
-  );
 
   return $build;
 }
@@ -563,199 +539,6 @@ function inope_policy_review_update_query(&$form_state) {
   cache_clear_all('inope_policy_review_admin_table_', 'cache', TRUE);
 
   return $updated_records;
-}
-
-/**
- * Retrieve admin table from cache if possible.
- *
- * As the administrative table is the table that could get excessivly large
- * that is the table we will cache.
- *
- * We need to focus on the different sort orders as well as the number of
- * records in the table.  As such we will use two cache variations.  One for
- * the number of records and one for the different sort orders.
- *
- * This report will not vary by admin user.
- *
- * NOTE: the cache_set() for records is handled by the table build handler.
- */
-function inope_policy_review_admin_table($node, $account, $report_page = FALSE) {
-
-  // Defaults for sort and order.
-  $sort = 'desc';
-  $order = 'Date';
-
-  // Get the parameters passed in the url and if needed change default sort
-  // order.
-  $get_params = drupal_get_query_parameters();
-  if (!empty($get_params)) {
-    $sort = $get_params['sort'];
-    $order = $get_params['order'];
-  }
-
-  // Check if the tablesort has already been cached.
-  if ($cache_table = cache_get('inope_policy_review_admin_table_' . $sort . '_' . $order)) {
-    $table = $cache_table->data;
-    return $table;
-  }
-  else {
-    // Build the table.
-    $table = inope_policy_review_table($node, $account, $report_page);
-    cache_set('inope_policy_review_admin_table_' . $sort . '_' . $order, $table, 'cache');
-    return $table;
-  }
-}
-
-/**
- * Build a table to display the data for the current node.
- */
-function inope_policy_review_table($node, $account, $report_page = FALSE) {
-  // Set table headers.
-  $header = array(
-    'Policy Review ID' => array(
-      'data' => t('Policy Review ID'),
-      'field' => 'pr.policy_review_id',
-    ),
-    'Version' => array(
-      'data' => t('Version'),
-      'field' => 'pr.vid',
-    ),
-    'Date' => array(
-      'data' => t('Date'),
-      'field' => 'pr.note_submitted',
-      'sort' => 'desc',
-    ),
-    'Request Status' => array(
-      'data' => t('Request Status'),
-      'field' => 'pr.note_status',
-    ),
-    'Note' => array(
-      'data' => t('Note'),
-      'field' => 'pr.note',
-    ),
-  );
-
-  // Change the header based on administrator role access.
-  if (user_access('administer inope policy review')) {
-    $header = array(
-      'User' => array(
-        'data' => t('User'),
-        'field' => 'u.uid',
-      ),
-    ) + $header;
-  }
-
-  // Change the header based on report page is true.
-  if ($report_page == TRUE) {
-    $header = array(
-      'Node' => array(
-        'data' => t('Node'),
-        'field' => 'n.nid',
-      ),
-    ) + $header;
-  }
-  
-  // Add edit header.
-    $header = $header + array(
-      'Edit' => array(
-        'data' => t('Action'),
-        'field' => 'pr.edit',
-      ),
-    );
-
-  // Create $rows variable.
-  $rows = array();
-
-  // Change note status from a binary number to text for display to the user.
-  $note_status_text = array('Approved', 'Change Requested');
-
-  // Build a dynamic 'TableSort' query that uses the GET parameters to order the
-  // table.  The TableSort is key, without it you need another way to change
-  // your query based on the GET parameters passed.
-  //
-  // Change the query based on administrator role access.
-  if (user_access('administer inope policy review') && $report_page == TRUE) {
-
-    // View ALL records.
-    $query = db_select('policy_review', 'pr');
-    $query->join('users', 'u', 'pr.uid = u.uid');
-    $query->join('node', 'n', 'pr.nid = n.nid');
-    $query->fields('pr');
-    $query->fields('u', array('uid', 'name'));
-    $query->fields('n', array('nid', 'title'));
-    $query->extend('TableSort')->orderByHeader($header);
-    $query->execute();
-  }
-  elseif (user_access('administer inope policy review') && $report_page == FALSE) {
-
-    // View all records regardless of uid on a single node.
-    $query = db_select('policy_review', 'pr');
-    $query->join('users', 'u', 'pr.uid = u.uid');
-    $query->fields('pr');
-    $query->fields('u', array('uid', 'name'));
-    $query->addField('pr', 'uid', 'edit');
-    $query->condition('pr.nid', $node->nid, '=');
-    $query->extend('TableSort')->orderByHeader($header);
-    $query->execute();
-  }
-  else {
-
-    // Limit access to records based on logged in user.
-    $query = db_select('policy_review', 'pr')
-      ->fields('pr')
-      ->condition('uid', $account->uid, '=')
-      ->condition('nid', $node->nid, '=')
-      ->extend('TableSort')
-      ->orderByHeader($header);
-  }
-
-  // Execute the query and store the results in a variable.
-  $results = $query->execute();
-  $count = 0;
-
-  // Process the results.
-  foreach ($results as $result) {
-
-    $rows[$count] = array(
-      array(
-        'data' => l($result->policy_review_id,
-                    'node/' . $result->nid . '/review',
-                    array('query' => array('id' => $result->policy_review_id))),
-      ),
-      array('data' => $result->vid),
-      array('data' => format_date($result->note_submitted, 'short')),
-      array('data' => $note_status_text[$result->note_status]),
-      array('data' => $result->note),
-      array(
-        'data' => l(t('Edit'),
-                    'node/' . $result->nid . '/review',
-                    array('query' => array('id' => $result->policy_review_id))),
-      ),
-    );
-
-    // Change the rows based on administrator role access.
-    if (user_access('administer inope policy review')) {
-      array_unshift($rows[$count], array(
-        'data' => l($result->name, 'user/' . $result->uid),
-      ));
-    }
-
-    // Change the rows based on report page is TRUE.
-    if ($report_page == TRUE) {
-      array_unshift($rows[$count], array(
-        'data' => l($result->title, 'node/' . $result->nid),
-      ));
-    }
-
-    $count++;
-
-  }
-
-  // Have the theme_table() function build your new table.
-  return theme('table', array(
-    'header' => $header,
-    'rows' => $rows,
-  ));
 }
 
 /**
