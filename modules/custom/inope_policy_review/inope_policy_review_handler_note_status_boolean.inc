@@ -24,7 +24,7 @@ class inope_policy_review_handler_note_status_boolean extends views_handler_fiel
    * @return array $options
    *   Sets the default options to be used in the init method.
    */
-  protected function option_definition() {
+  public function option_definition() {
     $options = parent::option_definition();
     $options['type'] = array('default' => 'approved-requested');
     $options['type_custom_true'] = array('default' => 'Approved', 'translatable' => TRUE);
@@ -46,7 +46,7 @@ class inope_policy_review_handler_note_status_boolean extends views_handler_fiel
    *
    * @todo research the parameters passed and update documentation.
    */
-  protected function init(&$view, &$options) {
+  public function init(&$view, &$options) {
     parent::init($view, $options);
 
     $default_formats = array(
