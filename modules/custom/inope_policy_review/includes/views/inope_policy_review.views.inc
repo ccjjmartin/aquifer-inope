@@ -45,7 +45,7 @@ function inope_policy_review_views_data() {
     'title' => t('Policy Review ID'),
 
     // The help that appears on the UI.
-    'help' => t('The primary key.'),
+    'help' => t('The primary key for the policy_review table.'),
 
     'field' => array(
       'handler' => 'views_handler_field_numeric',

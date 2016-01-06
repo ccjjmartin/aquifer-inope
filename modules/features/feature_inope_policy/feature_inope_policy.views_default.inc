@@ -156,8 +156,8 @@ function feature_inope_policy_views_default_views() {
   $handler->display->display_options['fields']['policy_review_id_1']['alter']['make_link'] = TRUE;
   $handler->display->display_options['fields']['policy_review_id_1']['alter']['path'] = '/node/[nid]/review?id=[policy_review_id]';
 
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
+  /* Display: Admin report */
+  $handler = $view->new_display('page', 'Admin report', 'inope_admin_report');
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Report';
   $handler->display->display_options['defaults']['access'] = FALSE;
@@ -173,8 +173,8 @@ function feature_inope_policy_views_default_views() {
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
 
-  /* Display: Block */
-  $handler = $view->new_display('block', 'Block', 'block_1');
+  /* Display: Staff node view */
+  $handler = $view->new_display('block', 'Staff node view', 'inope_staff_node_view');
   $handler->display->display_options['defaults']['access'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['access']['perm'] = 'view inope policy review';
@@ -190,11 +190,7 @@ function feature_inope_policy_views_default_views() {
   $handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
-  $handler->display->display_options['arguments']['nid']['validate']['type'] = 'node';
-  $handler->display->display_options['arguments']['nid']['validate_options']['types'] = array(
-    'inope_policy' => 'inope_policy',
-  );
-  $handler->display->display_options['arguments']['nid']['validate']['fail'] = 'summary';
+  $handler->display->display_options['arguments']['nid']['validate']['type'] = 'numeric';
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: User: Current */
@@ -203,6 +199,28 @@ function feature_inope_policy_views_default_views() {
   $handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';
   $handler->display->display_options['filters']['uid_current']['relationship'] = 'uid';
   $handler->display->display_options['filters']['uid_current']['value'] = '1';
+  $handler->display->display_options['block_description'] = 'Policies';
+
+  /* Display: Admin node view */
+  $handler = $view->new_display('block', 'Admin node view', 'inope_admin_node_view');
+  $handler->display->display_options['defaults']['access'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['access']['perm'] = 'view inope policy review';
+  $handler->display->display_options['defaults']['arguments'] = FALSE;
+  /* Contextual filter: Content: Nid */
+  $handler->display->display_options['arguments']['nid']['id'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['table'] = 'node';
+  $handler->display->display_options['arguments']['nid']['field'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['relationship'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['nid']['exception']['value'] = '';
+  $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'node';
+  $handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
+  $handler->display->display_options['arguments']['nid']['validate']['type'] = 'numeric';
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
   $handler->display->display_options['block_description'] = 'Policies';
   $export['policies'] = $view;
 

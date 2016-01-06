@@ -163,10 +163,7 @@ function inope_policy_review_page($node) {
       = drupal_get_form('inope_policy_review_form', $node);
 
     // Build a table of results from other users.
-    $build['table'] = array(
-      '#type' => 'markup',
-      '#markup' => views_embed_view('policies', 'block_1'),
-    );
+    $build['table']['#markup'] = views_embed_view('policies', 'inope_admin_node_view');
   }
   // Now we must have results so no need to check for it.
   // We now check if the URL contains GET parameters for a specific policy
@@ -179,10 +176,15 @@ function inope_policy_review_page($node) {
       '#markup' => t('Thank you for your feedback!
       Please check back often for additional review.'),
     );
-    $build['table'] = array(
-      '#type' => 'markup',
-      '#markup' => views_embed_view('policies', 'block_1'),
-    );
+
+    // If their are results change the result set based on user access.
+    // Administrators should see all information from ALL users.
+    if (user_access('administer inope policy review')) {
+      $build['table']['#markup'] = views_embed_view('policies', 'inope_admin_node_view');
+    }
+    else {
+      $build['table']['#markup'] = views_embed_view('policies', 'inope_staff_node_view');
+    }
   }
   // Now if policy review id IS set then build a form with that information.
   elseif (!empty($policy_review_id)) {
@@ -545,7 +547,7 @@ function inope_policy_review_update_query(&$form_state) {
  * Implements hook_views_api().
  */
 function inope_policy_review_views_api() {
-  $path = drupal_get_path('module', 'inope_policy_review');
+  $path = drupal_get_path('module', 'inope_policy_review') . '/includes/views';
   return array(
     'api' => 3,
     'path' => $path,
