@@ -3,5 +3,4 @@ description = iNope Policy Review Module
 core = 7.x
 package = Custom
 
-files[] = inope_policy_review.views.inc
-files[] = inope_policy_review_handler_note_status_boolean.inc
+files[] = includes/views/handlers/inope_policy_review_handler_note_status_boolean.inc
