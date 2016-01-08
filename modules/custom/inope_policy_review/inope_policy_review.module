@@ -553,3 +553,17 @@ function inope_policy_review_views_api() {
     'path' => $path,
   );
 }
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ *
+ * It simply tells panels where to find the .inc files that define various
+ * types of plugins: layouts, styles, args, contexts, content_types.
+ */
+function inope_policy_review_ctools_plugin_directory($owner, $plugin_type) {
+  // We're just providing layout plugins.
+  if ($owner == 'panels' && $plugin_type == 'layouts') {
+    // panels_extra_layouts_ctools_plugin_directory.
+    return "plugins/$plugin_type";
+  }
+}
