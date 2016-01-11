@@ -141,7 +141,18 @@ function feature_inope_policy_default_page_manager_pages() {
     $pane->type = 'views_panes';
     $pane->subtype = 'policies-panel_pane_1';
     $pane->shown = TRUE;
-    $pane->access = array();
+    $pane->access = array(
+      'plugins' => array(
+        0 => array(
+          'name' => 'perm',
+          'settings' => array(
+            'perm' => 'administer inope policy review',
+          ),
+          'context' => 'context_user_1',
+          'not' => TRUE,
+        ),
+      ),
+    );
     $pane->configuration = array();
     $pane->cache = array();
     $pane->style = array(
@@ -154,6 +165,36 @@ function feature_inope_policy_default_page_manager_pages() {
     $pane->uuid = '919316ef-429b-404c-bbbf-3bdaf148a9e5';
     $display->content['new-919316ef-429b-404c-bbbf-3bdaf148a9e5'] = $pane;
     $display->panels['left'][1] = 'new-919316ef-429b-404c-bbbf-3bdaf148a9e5';
+    $pane = new stdClass();
+    $pane->pid = 'new-7c257495-0b80-4a4f-83ad-a90871109b55';
+    $pane->panel = 'left';
+    $pane->type = 'views_panes';
+    $pane->subtype = 'policies-panel_pane_2';
+    $pane->shown = TRUE;
+    $pane->access = array(
+      'plugins' => array(
+        0 => array(
+          'name' => 'perm',
+          'settings' => array(
+            'perm' => 'administer inope policy review',
+          ),
+          'context' => 'context_user_1',
+          'not' => FALSE,
+        ),
+      ),
+    );
+    $pane->configuration = array();
+    $pane->cache = array();
+    $pane->style = array(
+      'settings' => NULL,
+    );
+    $pane->css = array();
+    $pane->extras = array();
+    $pane->position = 2;
+    $pane->locks = array();
+    $pane->uuid = '7c257495-0b80-4a4f-83ad-a90871109b55';
+    $display->content['new-7c257495-0b80-4a4f-83ad-a90871109b55'] = $pane;
+    $display->panels['left'][2] = 'new-7c257495-0b80-4a4f-83ad-a90871109b55';
   $display->hide_title = PANELS_TITLE_NONE;
   $display->title_pane = '0';
   $handler->conf['display'] = $display;
