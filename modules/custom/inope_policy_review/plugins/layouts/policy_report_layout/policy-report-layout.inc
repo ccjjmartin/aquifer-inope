@@ -8,8 +8,8 @@ $plugin = array(
   'css' => 'policy-report-layout.css',
   'theme' => 'policy_report_layout',
   'regions' => array(
-    'top_left' => t('first'),
-    'top_signup' => t('second'),
-    'top_right' => t('third')
+    'first' => t('First'),
+    'second' => t('Second'),
+    'third' => t('Third')
   ),
 );

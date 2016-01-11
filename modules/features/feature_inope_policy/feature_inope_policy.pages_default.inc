@@ -11,6 +11,121 @@ function feature_inope_policy_default_page_manager_pages() {
   $page = new stdClass();
   $page->disabled = FALSE; /* Edit this to true to make a default page disabled initially */
   $page->api_version = 1;
+  $page->name = 'admin_report';
+  $page->task = 'page';
+  $page->admin_title = 'Admin Report';
+  $page->admin_description = 'Display admin report using panels with views rather than views by itself.';
+  $page->path = 'admin/inope/report';
+  $page->access = array(
+    'plugins' => array(
+      0 => array(
+        'name' => 'perm',
+        'settings' => array(
+          'perm' => 'administer inope policy review',
+        ),
+        'context' => 'logged-in-user',
+        'not' => FALSE,
+      ),
+    ),
+    'logic' => 'and',
+  );
+  $page->menu = array(
+    'type' => 'normal',
+    'title' => 'Admin Policy Report',
+    'name' => 'management',
+    'weight' => '0',
+    'parent' => array(
+      'type' => 'none',
+      'title' => '',
+      'name' => 'navigation',
+      'weight' => '0',
+    ),
+  );
+  $page->arguments = array();
+  $page->conf = array(
+    'admin_paths' => TRUE,
+  );
+  $page->default_handlers = array();
+  $handler = new stdClass();
+  $handler->disabled = FALSE; /* Edit this to true to make a default handler disabled initially */
+  $handler->api_version = 1;
+  $handler->name = 'page_admin_report__panel';
+  $handler->task = 'page';
+  $handler->subtask = 'admin_report';
+  $handler->handler = 'panel_context';
+  $handler->weight = 0;
+  $handler->conf = array(
+    'title' => 'Admin Policy Report',
+    'no_blocks' => 0,
+    'pipeline' => 'standard',
+    'body_classes_to_remove' => '',
+    'body_classes_to_add' => '',
+    'css_id' => '',
+    'css' => '',
+    'contexts' => array(),
+    'relationships' => array(),
+    'name' => 'panel',
+    'access' => array(
+      'plugins' => array(
+        0 => array(
+          'name' => 'perm',
+          'settings' => array(
+            'perm' => 'administer inope policy review',
+          ),
+          'context' => 'logged-in-user',
+          'not' => FALSE,
+        ),
+      ),
+      'logic' => 'and',
+    ),
+  );
+  $display = new panels_display();
+  $display->layout = 'policy-report-layout';
+  $display->layout_settings = array();
+  $display->panel_settings = array(
+    'style_settings' => array(
+      'default' => NULL,
+      'top_left' => NULL,
+      'top_signup' => NULL,
+      'top_right' => NULL,
+      'first' => NULL,
+      'second' => NULL,
+      'third' => NULL,
+    ),
+  );
+  $display->cache = array();
+  $display->title = '';
+  $display->uuid = '10bbdfc5-d8e9-4964-84b4-8bceb2b2bb52';
+  $display->content = array();
+  $display->panels = array();
+    $pane = new stdClass();
+    $pane->pid = 'new-59486965-e171-4f16-a1a5-4c8361c87b8b';
+    $pane->panel = 'second';
+    $pane->type = 'views_panes';
+    $pane->subtype = 'policies-panel_pane_3';
+    $pane->shown = TRUE;
+    $pane->access = array();
+    $pane->configuration = array();
+    $pane->cache = array();
+    $pane->style = array(
+      'settings' => NULL,
+    );
+    $pane->css = array();
+    $pane->extras = array();
+    $pane->position = 0;
+    $pane->locks = array();
+    $pane->uuid = '59486965-e171-4f16-a1a5-4c8361c87b8b';
+    $display->content['new-59486965-e171-4f16-a1a5-4c8361c87b8b'] = $pane;
+    $display->panels['second'][0] = 'new-59486965-e171-4f16-a1a5-4c8361c87b8b';
+  $display->hide_title = PANELS_TITLE_NONE;
+  $display->title_pane = '0';
+  $handler->conf['display'] = $display;
+  $page->default_handlers[$handler->name] = $handler;
+  $pages['admin_report'] = $page;
+
+  $page = new stdClass();
+  $page->disabled = FALSE; /* Edit this to true to make a default page disabled initially */
+  $page->api_version = 1;
   $page->name = 'policy';
   $page->task = 'page';
   $page->admin_title = 'Policy';

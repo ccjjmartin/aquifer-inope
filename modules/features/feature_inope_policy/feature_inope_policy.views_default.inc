@@ -160,13 +160,13 @@ function feature_inope_policy_views_default_views() {
   $handler = $view->new_display('page', 'Admin report', 'inope_admin_report');
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Report';
+  $handler->display->display_options['enabled'] = FALSE;
   $handler->display->display_options['defaults']['access'] = FALSE;
   $handler->display->display_options['access']['type'] = 'role';
   $handler->display->display_options['access']['role'] = array(
     3 => '3',
   );
   $handler->display->display_options['path'] = 'admin/inope/report';
-  $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Report';
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'management';
@@ -292,6 +292,17 @@ function feature_inope_policy_views_default_views() {
     'inope_policy' => 'inope_policy',
   );
   $handler->display->display_options['arguments']['nid']['validate_options']['access'] = TRUE;
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+
+  /* Display: Admin Policy Report */
+  $handler = $view->new_display('panel_pane', 'Admin Policy Report', 'panel_pane_3');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['display_description'] = 'Displays the iNope policy review information to the logged in staff';
+  $handler->display->display_options['defaults']['access'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['access']['perm'] = 'view inope policy review';
+  $handler->display->display_options['defaults']['arguments'] = FALSE;
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
   $export['policies'] = $view;
