@@ -47,8 +47,12 @@ function inope_policy_review_admin_links_page() {
  *   String of characters to be used as the title in a menu local task for
  *   policy nodes.
  */
-function inope_policy_review_tab_title_callback($node) {
+function inope_policy_review_tab_title_callback($ctools_context) {
 
+  // Update title callback for new parameter received.  No longer node_load
+  // results but pm_arg_load results.
+  $node = $ctools_context->data;
+  
   global $user;
   $account = $user;
 
@@ -560,4 +564,12 @@ function inope_policy_review_panels_form_render($subtype, $conf, $args, $context
   $block->content = inope_policy_review_page($node);
 
   return $block;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function inope_policy_review_menu_alter(&$items) {
+  $items['node/%pm_arg/review']['title callback'] = 'inope_policy_review_tab_title_callback';
+  $items['node/%pm_arg/review']['title arguments'] = array(1);
 }
