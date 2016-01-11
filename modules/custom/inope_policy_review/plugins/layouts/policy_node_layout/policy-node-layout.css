@@ -1,4 +1,8 @@
 
+.one-sidebar #content {
+  width: 100% !important;
+}
+
 .panel-policy-node-layout { 
 /*  overflow: hidden;  */
   margin-top: 0;
@@ -17,10 +21,10 @@
 
 .panel-policy-node-layout .panel-col-first { 
   float: left; 
-  width: 50%; 
+  width: 75%; 
 }
 * html .panel-policy-node-layout .panel-col-first {
-  width: 49.9%;
+  width: 74.9%;
 }
 
 .panel-policy-node-layout .panel-col-first .inside { 
@@ -29,7 +33,7 @@
 
 .panel-policy-node-layout .panel-col-last { 
   float: left; 
-  width: 49.9%; 
+  width: 24.9%; 
 }
 
 .panel-policy-node-layout .panel-col-last .inside { 
