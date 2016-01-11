@@ -68,6 +68,7 @@ $conf['master_modules'] = array(
     'module_filter',
     'panels',
     'panels_everywhere',
+    'panels_content_cache',
     'pathauto',
     'strongarm',
     'token',

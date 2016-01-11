@@ -119,3 +119,11 @@ function inope_policy_review_update_7103() {
   features_revert_module('feature_inope_policy');
   drupal_flush_all_caches();
 }
+
+/**
+ * Revert feature_inope_policy for caching.
+ */
+function inope_policy_review_update_7104() {
+  features_revert_module('feature_inope_policy');
+  drupal_flush_all_caches();
+}

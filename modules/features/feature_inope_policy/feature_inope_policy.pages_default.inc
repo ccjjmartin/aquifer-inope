@@ -106,7 +106,32 @@ function feature_inope_policy_default_page_manager_pages() {
     $pane->shown = TRUE;
     $pane->access = array();
     $pane->configuration = array();
-    $pane->cache = array();
+    $pane->cache = array(
+      'method' => 'content',
+      'settings' => array(
+        'lifetime' => '600',
+        'content_types' => array(
+          'inope_policy' => 'inope_policy',
+          'article' => 0,
+          'page' => 0,
+        ),
+        'granularity' => array(
+          'url' => 'url',
+          'args' => 0,
+          'context' => 0,
+          'user' => 0,
+          'user_role' => 0,
+        ),
+        'granularity_url' => 'base_path_alias',
+        'granularity_url_query' => 1,
+        'granularity_roles_as_anon' => array(
+          2 => 0,
+          4 => 0,
+          3 => 0,
+        ),
+        'granularity_role_selection' => 'all',
+      ),
+    );
     $pane->style = array(
       'settings' => NULL,
     );
