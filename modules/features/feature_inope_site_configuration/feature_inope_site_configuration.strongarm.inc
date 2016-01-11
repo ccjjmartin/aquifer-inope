@@ -49,7 +49,7 @@ function feature_inope_site_configuration_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'theme_default';
-  $strongarm->value = 'bartik';
+  $strongarm->value = 'bartik_sub';
   $export['theme_default'] = $strongarm;
 
   $strongarm = new stdClass();
