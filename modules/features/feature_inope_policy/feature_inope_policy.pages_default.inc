@@ -105,6 +105,10 @@ function feature_inope_policy_default_page_manager_pages() {
       'column1' => NULL,
       'column2' => NULL,
       'footer' => NULL,
+      'top' => NULL,
+      'left' => NULL,
+      'right' => NULL,
+      'bottom' => NULL,
     ),
   );
   $display->cache = array();
@@ -112,6 +116,25 @@ function feature_inope_policy_default_page_manager_pages() {
   $display->uuid = '6656ffc7-b00b-4444-ad2f-62c7393b06e9';
   $display->content = array();
   $display->panels = array();
+    $pane = new stdClass();
+    $pane->pid = 'new-919316ef-429b-404c-bbbf-3bdaf148a9e5';
+    $pane->panel = 'left';
+    $pane->type = 'views_panes';
+    $pane->subtype = 'policies-panel_pane_1';
+    $pane->shown = TRUE;
+    $pane->access = array();
+    $pane->configuration = array();
+    $pane->cache = array();
+    $pane->style = array(
+      'settings' => NULL,
+    );
+    $pane->css = array();
+    $pane->extras = array();
+    $pane->position = 0;
+    $pane->locks = array();
+    $pane->uuid = '919316ef-429b-404c-bbbf-3bdaf148a9e5';
+    $display->content['new-919316ef-429b-404c-bbbf-3bdaf148a9e5'] = $pane;
+    $display->panels['left'][0] = 'new-919316ef-429b-404c-bbbf-3bdaf148a9e5';
   $display->hide_title = PANELS_TITLE_FIXED;
   $display->title_pane = '0';
   $handler->conf['display'] = $display;
