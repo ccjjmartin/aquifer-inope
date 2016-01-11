@@ -237,6 +237,7 @@ function feature_inope_policy_views_default_views() {
 
   /* Display: Staff Node Pane */
   $handler = $view->new_display('panel_pane', 'Staff Node Pane', 'panel_pane_1');
+  $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['display_description'] = 'Displays the iNope policy review information to the logged in staff';
   $handler->display->display_options['defaults']['access'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';

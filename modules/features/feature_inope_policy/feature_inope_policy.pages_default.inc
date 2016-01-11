@@ -15,7 +15,7 @@ function feature_inope_policy_default_page_manager_pages() {
   $page->task = 'page';
   $page->admin_title = 'Policy';
   $page->admin_description = 'Display page for iNope policy';
-  $page->path = 'node/%node/panel';
+  $page->path = 'node/%node/review';
   $page->access = array(
     'plugins' => array(
       0 => array(
@@ -31,7 +31,7 @@ function feature_inope_policy_default_page_manager_pages() {
   );
   $page->menu = array(
     'type' => 'tab',
-    'title' => 'Policy',
+    'title' => 'Review',
     'name' => 'navigation',
     'weight' => '4',
     'parent' => array(
@@ -117,6 +117,25 @@ function feature_inope_policy_default_page_manager_pages() {
   $display->content = array();
   $display->panels = array();
     $pane = new stdClass();
+    $pane->pid = 'new-60c348ef-62c0-4dfd-be4b-400d80351707';
+    $pane->panel = 'left';
+    $pane->type = 'policy_form';
+    $pane->subtype = 'policy_form';
+    $pane->shown = TRUE;
+    $pane->access = array();
+    $pane->configuration = array();
+    $pane->cache = array();
+    $pane->style = array(
+      'settings' => NULL,
+    );
+    $pane->css = array();
+    $pane->extras = array();
+    $pane->position = 0;
+    $pane->locks = array();
+    $pane->uuid = '60c348ef-62c0-4dfd-be4b-400d80351707';
+    $display->content['new-60c348ef-62c0-4dfd-be4b-400d80351707'] = $pane;
+    $display->panels['left'][0] = 'new-60c348ef-62c0-4dfd-be4b-400d80351707';
+    $pane = new stdClass();
     $pane->pid = 'new-919316ef-429b-404c-bbbf-3bdaf148a9e5';
     $pane->panel = 'left';
     $pane->type = 'views_panes';
@@ -130,12 +149,12 @@ function feature_inope_policy_default_page_manager_pages() {
     );
     $pane->css = array();
     $pane->extras = array();
-    $pane->position = 0;
+    $pane->position = 1;
     $pane->locks = array();
     $pane->uuid = '919316ef-429b-404c-bbbf-3bdaf148a9e5';
     $display->content['new-919316ef-429b-404c-bbbf-3bdaf148a9e5'] = $pane;
-    $display->panels['left'][0] = 'new-919316ef-429b-404c-bbbf-3bdaf148a9e5';
-  $display->hide_title = PANELS_TITLE_FIXED;
+    $display->panels['left'][1] = 'new-919316ef-429b-404c-bbbf-3bdaf148a9e5';
+  $display->hide_title = PANELS_TITLE_NONE;
   $display->title_pane = '0';
   $handler->conf['display'] = $display;
   $page->default_handlers[$handler->name] = $handler;
