@@ -22,7 +22,11 @@
       "root": "files"
     }
   },
-  "extensions": {},
+  "extensions": {
+    "aquifer-coder": {
+      "source": "aquifer-coder"
+    }
+  },
   "refreshCommands": [
     [
       "updb"
