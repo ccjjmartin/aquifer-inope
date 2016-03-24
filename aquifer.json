@@ -1,6 +1,7 @@
 {
   "name": "inope",
   "paths": {
+    "drush": "drush",
     "make": "drupal.make.yml",
     "lock": false,
     "settings": "settings",
