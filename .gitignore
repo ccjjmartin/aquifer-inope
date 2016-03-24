@@ -20,3 +20,4 @@ aquifer.local.json
 .DS_Store
 *.sql
 config.yml
+*.diff
